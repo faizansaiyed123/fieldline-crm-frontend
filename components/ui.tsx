@@ -91,3 +91,25 @@ export function StatCard({
     </div>
   );
 }
+
+
+export function ErrorState({
+  title = "Could not load this view",
+  description,
+  onRetry,
+}: {
+  title?: string;
+  description: string;
+  onRetry?: () => void;
+}) {
+  return (
+    <div className="error-state" role="alert">
+      <div className="error-mark" aria-hidden="true">!</div>
+      <div>
+        <strong>{title}</strong>
+        <p>{description}</p>
+        {onRetry ? <Button variant="secondary" onClick={onRetry}>Try again</Button> : null}
+      </div>
+    </div>
+  );
+}
