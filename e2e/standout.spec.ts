@@ -166,7 +166,7 @@ test("relationship graph and health console render", async ({ page }) => {
 
 test("contact inspection is keyboard reachable", async ({ page }) => {
   const organizationId = await seedSession(page);
-  await page.route("**/api/v1/organizations/" + organizationId + "/contacts?page_size=100", async (route) => {
+  await page.route("**/api/v1/organizations/" + organizationId + "/contacts**", async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
