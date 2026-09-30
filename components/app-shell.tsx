@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui";
 const nav = [
   { href: "/dashboard", label: "Overview", glyph: "O" },
   { href: "/contacts", label: "Contacts", glyph: "C" },
+  { href: "/companies", label: "Companies", glyph: "A" },
   { href: "/relationships", label: "Relationships", glyph: "G" },
   { href: "/opportunities", label: "Pipeline", glyph: "P" },
   { href: "/views", label: "Saved views", glyph: "V" },
@@ -23,6 +25,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
 
+  useEffect(() => {
+    if (!loading && !user) router.replace("/login");
+  }, [loading, router, user]);
+
   if (loading) {
     return (
       <div className="boot-screen">
@@ -33,7 +39,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    router.replace("/login");
     return (
       <div className="boot-screen">
         <div className="boot-mark">F</div>
@@ -44,6 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="shell">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <aside className="sidebar">
         <Link href="/dashboard" className="brand">
           <span className="brand-mark">F</span>
@@ -60,6 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={pathname === item.href ? "nav-link active" : "nav-link"}
+              aria-current={pathname === item.href ? "page" : undefined}
             >
               <span className="nav-glyph" aria-hidden="true">{item.glyph}</span>
               {item.label}
@@ -72,7 +79,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </aside>
-      <main className="main">{children}</main>
+      <main id="main-content" className="main">{children}</main>
     </div>
   );
 }
