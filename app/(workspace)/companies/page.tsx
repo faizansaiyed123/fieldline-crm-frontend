@@ -38,6 +38,7 @@ export default function CompaniesPage() {
       apiFetch<Company>(`${prefix}/companies/${id}`, { method: "PATCH", body: input }, accessToken),
     onSuccess: (company) => {
       void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["companies", "dashboard", organizationId] });
       setSelected(company);
       setError("");
     },
@@ -47,6 +48,7 @@ export default function CompaniesPage() {
     mutationFn: (id: string) => apiFetch<void>(`${prefix}/companies/${id}`, { method: "DELETE" }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["companies", "dashboard", organizationId] });
       setSelected(null);
     },
     onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Could not archive company"),
@@ -57,6 +59,7 @@ export default function CompaniesPage() {
       apiFetch<Company>(`${prefix}/companies`, { method: "POST", body: input }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["companies", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["companies", "dashboard", organizationId] });
       setCreating(false);
       setError("");
     },
