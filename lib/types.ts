@@ -269,3 +269,47 @@ export type SystemHealthResponse = {
   status: "ok" | "warning" | "error";
   checks: Record<string, { status: "ok" | "warning" | "error"; detail: string }>;
 };
+
+
+export type TimelineItem = {
+  id: string;
+  kind: "activity" | "task" | "audit";
+  timestamp: string;
+  title: string;
+  summary: string | null;
+  actor_user_id: string | null;
+};
+
+export type TimelineResponse = {
+  items: TimelineItem[];
+  limit: number;
+  next_before: string | null;
+  next_before_id: string | null;
+};
+
+export type PipelineStage = {
+  id: string;
+  organization_id: string;
+  name: string;
+  order_index: number;
+  win_probability: number;
+  is_closed: boolean;
+  is_won: boolean;
+};
+
+
+export type AutomationRule = {
+  id: string;
+  organization_id: string;
+  name: string;
+  trigger: "opportunity.won" | "opportunity.lost";
+  action_type: "create_task";
+  action_config: {
+    title: string;
+    priority: "low" | "normal" | "high";
+    due_days: number;
+  };
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+};
