@@ -3,6 +3,7 @@
 import { ChangeEvent, useState } from "react";
 import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
+import { hasAdminAccess } from "@/lib/permissions";
 import type { ImportCommitResponse, ImportPreview } from "@/lib/types";
 import { Badge, Button, SectionTitle } from "@/components/ui";
 
@@ -11,7 +12,7 @@ export default function ImportsPage() {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const canImport = user?.memberships[0]?.role !== "member";
+  const canImport = hasAdminAccess(user?.memberships[0]?.role);
   const prefix = organizationId ? `/organizations/${organizationId}` : "";
 
   async function upload(event: ChangeEvent<HTMLInputElement>) {
@@ -73,7 +74,7 @@ export default function ImportsPage() {
           ) : <span>Owner/admin access required.</span>}
         </div>
       </div>
-      {message ? <div className="callout">{message}</div> : null}
+      {message ? <div className="callout" role="status" aria-live="polite">{message}</div> : null}
       {preview ? (
         <div className="content-grid two-up">
           <section className="panel">
