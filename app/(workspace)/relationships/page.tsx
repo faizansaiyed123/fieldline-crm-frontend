@@ -78,14 +78,30 @@ function RelationshipSvg({ graph }: { graph: RelationshipGraphResponse }) {
   }
 
   const coords = new Map<string, { x: number; y: number }>();
+  const visibleByType = new Map<string, GraphNode[]>();
+  const overflowByType = new Map<string, number>();
+
   if (contactNode) coords.set(contactNode.id, positions.contact);
   for (const [type, nodes] of Object.entries(grouped)) {
+    const visible = nodes.slice(0, 4);
+    visibleByType.set(type, visible);
+    if (nodes.length > visible.length) overflowByType.set(type, nodes.length - visible.length);
+
     const base = positions[type] ?? { x: 430, y: 100 };
-    nodes.forEach((node, index) => {
-      const spread = Math.min(150, index * 48);
-      coords.set(node.id, { x: base.x, y: base.y + spread });
+    visible.forEach((node, index) => {
+      const column = index % 2;
+      const row = Math.floor(index / 2);
+      coords.set(node.id, {
+        x: base.x + (column === 0 ? -48 : 48),
+        y: base.y + row * 82,
+      });
     });
   }
+
+  const visibleNodeIds = new Set<string>([
+    ...(contactNode ? [contactNode.id] : []),
+    ...Array.from(visibleByType.values()).flat().map((node) => node.id),
+  ]);
 
   return (
     <div className="graph-canvas">
@@ -99,7 +115,7 @@ function RelationshipSvg({ graph }: { graph: RelationshipGraphResponse }) {
           if (!source || !target) return null;
           return <g key={edge.id}><line x1={source.x} y1={source.y} x2={target.x} y2={target.y} className="graph-edge" /><text x={(source.x + target.x) / 2} y={(source.y + target.y) / 2 - 8} className="graph-edge-label">{edge.label}</text></g>;
         })}
-        {graph.nodes.map((node) => {
+        {graph.nodes.filter((node) => visibleNodeIds.has(node.id)).map((node) => {
           const point = coords.get(node.id);
           if (!point) return null;
           const radius = node.type === "contact" ? 46 : 36;
@@ -110,6 +126,19 @@ function RelationshipSvg({ graph }: { graph: RelationshipGraphResponse }) {
           </g>;
         })}
       </svg>
+      {overflowByType.size ? (
+        <div className="graph-overflow" aria-live="polite">
+          {Array.from(overflowByType.entries()).map(([type, count]) => (
+            <span key={type}>+{count} more {type}{count === 1 ? "" : "s"} not drawn</span>
+          ))}
+        </div>
+      ) : null}
+      <details className="graph-text">
+        <summary>Text view of relationships</summary>
+        <ul>
+          {graph.nodes.map((node) => <li key={node.id}><strong>{node.type}</strong> — {node.label}</li>)}
+        </ul>
+      </details>
     </div>
   );
 }
