@@ -42,6 +42,7 @@ export default function OpportunitiesPage() {
       apiFetch<Opportunity>(`${prefix}/opportunities/${id}`, { method: "PATCH", body: input }, accessToken),
     onSuccess: (opportunity) => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
       setSelected(opportunity);
     },
   });
@@ -50,6 +51,7 @@ export default function OpportunitiesPage() {
     mutationFn: (id: string) => apiFetch<void>(`${prefix}/opportunities/${id}`, { method: "DELETE" }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
       setSelected(null);
     },
   });
@@ -75,6 +77,7 @@ export default function OpportunitiesPage() {
       apiFetch<Opportunity>(`${prefix}/opportunities`, { method: "POST", body: input }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
       setShowCreate(false);
     },
   });
