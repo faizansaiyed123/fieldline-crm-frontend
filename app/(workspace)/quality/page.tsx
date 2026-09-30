@@ -3,15 +3,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useAuth } from "@/app/providers";
+import { useDrawerBehavior } from "@/lib/use-drawer-behavior";
 import { apiFetch } from "@/lib/api";
+import { hasAdminAccess } from "@/lib/permissions";
 import type { DataQualityResponse, DuplicateCandidate, MergeResponse } from "@/lib/types";
-import { Badge, Button, SectionTitle, StatCard } from "@/components/ui";
+import { Badge, Button, SectionTitle, StatCard, ErrorState } from "@/components/ui";
 
 export default function QualityPage() {
   const { accessToken, organizationId, user } = useAuth();
   const enabled = Boolean(accessToken && organizationId);
   const prefix = organizationId ? `/organizations/${organizationId}` : "";
   const [selected, setSelected] = useState<DuplicateCandidate | null>(null);
+  useDrawerBehavior(Boolean(selected), () => setSelected(null));
   const [survivor, setSurvivor] = useState<"first" | "second">("first");
   const [message, setMessage] = useState("");
   const queryClient = useQueryClient();
@@ -53,7 +56,8 @@ export default function QualityPage() {
         action={<div className="live-chip"><span/>Deterministic</div>}
       />
 
-      {message ? <div className="callout">{message}</div> : null}
+      {message ? <div className="callout" role="status">{message}</div> : null}
+      {report.isError ? <ErrorState description={(report.error as Error).message} onRetry={() => void report.refetch()} /> : null}
 
       <div className="stats-grid">
         <StatCard label="Issues" value={summary?.total_issues ?? "—"} detail="actionable data-quality findings" accent="amber" />
@@ -62,7 +66,7 @@ export default function QualityPage() {
         <StatCard label="Stale contacts" value={summary?.stale_contacts ?? "—"} detail="lead/prospect inactivity" accent="green" />
       </div>
 
-      <div className="content-grid two-up">
+      {!report.isError ? <div className="content-grid two-up">
         <section className="panel">
           <div className="panel-head">
             <div><span className="eyebrow">Duplicate candidates</span><h2>Review before merging.</h2></div>
@@ -96,7 +100,7 @@ export default function QualityPage() {
             {!report.data?.issues.length && !report.isLoading ? <div className="panel-empty">The workspace is clean.</div> : null}
           </div>
         </section>
-      </div>
+      </div> : null}
 
       {selected ? (
         <div className="drawer-backdrop" onClick={() => setSelected(null)}>
@@ -110,7 +114,7 @@ export default function QualityPage() {
               <button className={survivor === "second" ? "compare-card active" : "compare-card"} onClick={() => setSurvivor("second")}><span>RECORD B</span><strong>{selected.second_label}</strong><small>{selected.reasons.join(" · ")}</small></button>
             </div>
             <div className="merge-warning"><strong>This is irreversible at the record level.</strong><p>The merged record is soft-deleted, related activities/tasks/opportunities move to the survivor, and two audit events are written.</p></div>
-            {user?.memberships[0]?.role !== "member" ? <Button disabled={merge.isPending} onClick={() => merge.mutate()}>{merge.isPending ? "Merging…" : `Merge into ${survivor === "first" ? "Record A" : "Record B"}`}</Button> : <div className="form-error">Owner/admin access required.</div>}
+            {hasAdminAccess(user?.memberships[0]?.role) ? <Button disabled={merge.isPending} onClick={() => merge.mutate()}>{merge.isPending ? "Merging…" : `Merge into ${survivor === "first" ? "Record A" : "Record B"}`}</Button> : <div className="form-error">Owner/admin access required.</div>}
           </aside>
         </div>
       ) : null}
