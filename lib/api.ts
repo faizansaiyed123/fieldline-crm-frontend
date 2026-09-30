@@ -5,6 +5,18 @@ type ApiOptions = Omit<RequestInit, "body"> & {
   skipRefresh?: boolean;
 };
 
+type AccessTokenListener = (accessToken: string) => void;
+
+let accessTokenListener: AccessTokenListener | null = null;
+let refreshInFlight: Promise<AuthResponse> | null = null;
+
+export function registerAccessTokenListener(listener: AccessTokenListener) {
+  accessTokenListener = listener;
+  return () => {
+    if (accessTokenListener === listener) accessTokenListener = null;
+  };
+}
+
 function csrfToken() {
   if (typeof document === "undefined") return "";
   return (
@@ -52,13 +64,37 @@ async function request<T>(
     } catch {
       // Keep the status-derived message.
     }
-    const error = new Error(message);
-    Object.assign(error, { status: response.status });
-    throw error;
+    throw new ApiError(response.status, message);
   }
 
   if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
+}
+
+function refreshAccessToken() {
+  if (!refreshInFlight) {
+    refreshInFlight = request<AuthResponse>("/auth/refresh", { method: "POST" }, null)
+      .then((session) => {
+        accessTokenListener?.(session.access_token);
+        return session;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+  return refreshInFlight;
+}
+
+export class ApiError extends Error {
+  readonly status: number;
+  readonly detail: string;
+
+  constructor(status: number, detail: string) {
+    super(detail);
+    this.name = "ApiError";
+    this.status = status;
+    this.detail = detail;
+  }
 }
 
 export async function apiFetch<T>(
@@ -71,7 +107,7 @@ export async function apiFetch<T>(
   } catch (error) {
     const status = (error as { status?: number }).status;
     if (status === 401 && !options.skipRefresh && path !== "/auth/refresh") {
-      const session = await request<AuthResponse>("/auth/refresh", { method: "POST" }, null);
+      const session = await refreshAccessToken();
       return request<T>(path, options, session.access_token);
     }
     throw error;
