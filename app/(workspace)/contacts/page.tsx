@@ -40,6 +40,7 @@ export default function ContactsPage() {
       apiFetch<Contact>(`${prefix}/contacts/${id}`, { method: "PATCH", body: input }, accessToken),
     onSuccess: (contact) => {
       void queryClient.invalidateQueries({ queryKey: ["contacts", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts", "dashboard", organizationId] });
       setSelected(contact);
       setError("");
     },
@@ -50,6 +51,7 @@ export default function ContactsPage() {
     mutationFn: (id: string) => apiFetch<void>(`${prefix}/contacts/${id}`, { method: "DELETE" }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["contacts", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts", "dashboard", organizationId] });
       setSelected(null);
     },
     onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Could not archive contact"),
@@ -60,6 +62,7 @@ export default function ContactsPage() {
       apiFetch<Contact>(`${prefix}/contacts`, { method: "POST", body: input }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["contacts", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["contacts", "dashboard", organizationId] });
       setShowCreate(false);
       setError("");
     },
