@@ -2,10 +2,25 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { apiFetch, refreshSession } from "@/lib/api";
+import { ApiError, apiFetch, refreshSession, registerAccessTokenListener } from "@/lib/api";
 import type { AuthResponse, User } from "@/lib/types";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 15_000,
+      gcTime: 5 * 60_000,
+      retry: (failureCount, error) => {
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500) return false;
+        return failureCount < 1;
+      },
+      refetchOnWindowFocus: true,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 type AuthContextValue = {
   user: User | null;
@@ -35,7 +50,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    const unregister = registerAccessTokenListener(setAccessToken);
     let cancelled = false;
+
     void refreshSession()
       .then((response) => {
         if (!cancelled) setSession(response);
@@ -49,8 +66,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
+
     return () => {
       cancelled = true;
+      unregister();
     };
   }, []);
 
