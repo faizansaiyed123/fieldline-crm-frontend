@@ -1,0 +1,40 @@
+name: Frontend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install frontend
+        run: npm install
+
+      - name: Typecheck frontend
+        run: npm run typecheck
+
+      - name: Build frontend
+        env:
+          BACKEND_URL: http://127.0.0.1:8000
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser smoke tests
+        run: npx playwright test e2e/smoke.spec.ts e2e/standout.spec.ts
