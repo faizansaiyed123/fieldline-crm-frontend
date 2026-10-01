@@ -54,6 +54,8 @@ http://127.0.0.1:3000
 
 The Docker Compose default for `BACKEND_URL` is `http://host.docker.internal:8000`. That value is supplied as both a build-time argument and a runtime environment variable because the Next.js rewrite configuration is evaluated during the application build.
 
+Compose reads the Docker-specific `FIELDLINE_DOCKER_BACKEND_URL` override, rather than the local-development `BACKEND_URL` value from `.env`. This prevents a local `BACKEND_URL=http://127.0.0.1:8000` from making the frontend container try to reach itself.
+
 The Compose file maps `host.docker.internal` to the Docker host gateway so the frontend container can reach a backend independently exposed on host port `8000` on Docker environments that support the `host-gateway` mapping.
 
 The frontend does not start PostgreSQL or the backend. The companion backend must be running separately, for example through its own repository's Docker Compose configuration.
@@ -74,20 +76,21 @@ docker compose up --build
 
 | Variable | Purpose | Example |
 | --- | --- | --- |
-| `BACKEND_URL` | Base URL used by the Next.js server rewrite for `/api/*` requests. | `http://127.0.0.1:8000` for local development |
+| `BACKEND_URL` | Existing application variable used by the Next.js server rewrite. | `http://127.0.0.1:8000` for local development |
+| `FIELDLINE_DOCKER_BACKEND_URL` | Optional Docker-only override used by the Compose file for both build time and runtime. | `http://host.docker.internal:8000` |
 
 Do not put secrets in frontend environment variables that are exposed to browser code.
 
-For Docker, override the backend URL at build/run time when the backend is exposed somewhere other than host port `8000`:
+For Docker, override the backend URL when the backend is exposed somewhere other than host port `8000`:
 
 ```bash
-BACKEND_URL=http://127.0.0.1:8000 docker compose up --build
+FIELDLINE_DOCKER_BACKEND_URL=http://host.docker.internal:8000 docker compose up --build
 ```
 
 On PowerShell:
 
 ```powershell
-$env:BACKEND_URL="http://127.0.0.1:8000"
+$env:FIELDLINE_DOCKER_BACKEND_URL="http://host.docker.internal:8000"
 docker compose up --build
 ```
 
