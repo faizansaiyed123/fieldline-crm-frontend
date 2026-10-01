@@ -65,7 +65,13 @@ jobs:
 
       - name: Start backend stack
         working-directory: backend
-        run: docker compose up -d
+        run: |
+          docker compose up -d || {
+            docker compose ps -a
+            docker compose logs postgres
+            ss -ltnp | grep ':5432' || true
+            exit 1
+          }
 
       - name: Wait for backend readiness
         working-directory: backend
