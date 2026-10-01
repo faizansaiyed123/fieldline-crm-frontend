@@ -1,0 +1,25 @@
+# Git and repository metadata
+.git
+.gitignore
+.github
+
+# Node dependencies and Next.js build output
+node_modules
+.next
+out
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Test output
+coverage
+playwright-report
+test-results
+
+# Editor / OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
