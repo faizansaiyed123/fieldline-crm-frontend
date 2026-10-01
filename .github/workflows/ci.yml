@@ -39,6 +39,7 @@ jobs:
       - name: Run browser smoke tests
         run: npx playwright test e2e/smoke.spec.ts e2e/standout.spec.ts
 
+  # Temporary Docker integration validation.
   docker:
     runs-on: ubuntu-latest
     steps:
