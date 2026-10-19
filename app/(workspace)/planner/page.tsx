@@ -24,7 +24,7 @@ export default function PlannerPage() {
 
   const completeTask = useMutation({
     mutationFn: (taskId: string) =>
-      apiFetch<TaskItem>(`${prefix}/tasks/${taskId}`, { method: "PATCH", body: { completed: true } }, accessToken),
+      apiFetch<TaskItem>(`${prefix}/engagement/tasks/${taskId}`, { method: "PATCH", body: { completed: true } }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
@@ -34,7 +34,7 @@ export default function PlannerPage() {
 
   const createTask = useMutation({
     mutationFn: (input: Record<string, unknown>) =>
-      apiFetch<TaskItem>(`${prefix}/tasks`, { method: "POST", body: input }, accessToken),
+      apiFetch<TaskItem>(`${prefix}/engagement/tasks`, { method: "POST", body: input }, accessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });

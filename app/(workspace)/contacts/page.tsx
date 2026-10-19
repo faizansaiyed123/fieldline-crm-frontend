@@ -112,7 +112,7 @@ export default function ContactsPage() {
 
   const logActivity = useMutation({
     mutationFn: (input: Record<string, unknown>) =>
-      apiFetch<ActivityItem>(`${prefix}/activities`, { method: "POST", body: input }, accessToken),
+      apiFetch<ActivityItem>(`${prefix}/engagement/activities`, { method: "POST", body: input }, accessToken),
     onSuccess: async () => {
       if (selected) await refreshContactContext(selected.id);
       void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
@@ -124,7 +124,7 @@ export default function ContactsPage() {
 
   const createTask = useMutation({
     mutationFn: (input: Record<string, unknown>) =>
-      apiFetch<TaskItem>(`${prefix}/tasks`, { method: "POST", body: input }, accessToken),
+      apiFetch<TaskItem>(`${prefix}/engagement/tasks`, { method: "POST", body: input }, accessToken),
     onSuccess: async () => {
       if (selected) await refreshContactContext(selected.id);
       void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
