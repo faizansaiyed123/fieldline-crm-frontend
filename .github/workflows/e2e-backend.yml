@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: fieldline-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   real-browser:
     runs-on: ubuntu-latest
@@ -82,4 +86,4 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run real browser E2E
-        run: npx playwright test e2e/real-backend.spec.ts e2e/standout.spec.ts
+        run: npx playwright test e2e/real-backend.spec.ts e2e/deep-product.spec.ts e2e/standout.spec.ts
