@@ -1,0 +1,32 @@
+name: Restore frontend ZIP overlay
+
+on:
+  push:
+    branches: [production-ready-2026-10-19-v2]
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    if: github.actor == 'github-actions[bot]' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply exact ZIP overlay
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/fieldline
+          base64 --decode .restore/frontend-overlay-000 > /tmp/fieldline/overlay.b64.part1
+          base64 --decode .restore/frontend-overlay-001 > /tmp/fieldline/overlay.b64.part2
+          cat /tmp/fieldline/overlay.b64.part1 /tmp/fieldline/overlay.b64.part2 > /tmp/fieldline/overlay.b64
+          base64 --decode /tmp/fieldline/overlay.b64 > /tmp/fieldline/overlay.txz
+          tar -xJf /tmp/fieldline/overlay.txz -C .
+          rm -rf .restore .github/workflows/restore-frontend-overlay.yml /tmp/fieldline
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@github.com"
+          git add -A
+          git commit -m "chore: apply frontend ZIP overlay"
+          git push
