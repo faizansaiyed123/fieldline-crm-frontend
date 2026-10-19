@@ -75,9 +75,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Install frontend
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Build frontend
         run: npm run build
