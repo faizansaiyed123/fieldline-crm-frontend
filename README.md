@@ -14,15 +14,15 @@ Fieldline is a focused CRM workspace for customer relationships, sales pipeline 
 
 ## Local setup
 
-Install dependencies:
+Install the exact dependency versions from the committed lockfile:
 
 ```bash
-npm install
+npm ci
 ```
 
 Create `.env.local` from `.env.example`:
 
-```text
+```env
 BACKEND_URL=http://127.0.0.1:8000
 ```
 
@@ -36,6 +36,20 @@ The browser app runs on `http://127.0.0.1:3000`.
 
 The frontend calls `/api/v1/*` and Next.js rewrites those requests to `BACKEND_URL`. This keeps browser API calls same-origin and lets the backend continue to own authentication cookies and CSRF validation.
 
+## Production deployment
+
+Deploy the frontend and backend independently. Configure the frontend's **build-time** `BACKEND_URL` as the public HTTPS URL of the backend, for example:
+
+```env
+BACKEND_URL=https://api.your-domain.example
+```
+
+The URL must be reachable from the Next.js server/container. The API path is added by the existing Next.js rewrite; do not append `/api/v1` to the base URL. This is a server-side rewrite, so browser requests remain same-origin with the frontend and the backend should not need to be called directly by client-side JavaScript.
+
+In containerized deployments, pass `BACKEND_URL` as a Docker build argument as well as setting the runtime variable. The current `next.config.ts` reads it when the Next.js build runs. A runtime-only setting will not change a rewrite that was already baked into the build.
+
+Do not place secrets in frontend environment variables that are exposed to browser code. Authentication signing keys and database credentials belong only in the backend's secret configuration.
+
 ## Docker startup
 
 The frontend repository runs independently in Docker:
@@ -44,7 +58,7 @@ The frontend repository runs independently in Docker:
 docker compose up --build
 ```
 
-The container installs the frontend dependencies, builds the existing Next.js application, and starts the existing production server on host port `3000`.
+The Docker image installs the committed dependency graph with `npm ci`, builds the existing Next.js application, and starts the production server on port `3000`.
 
 Open:
 
@@ -76,10 +90,8 @@ docker compose up --build
 
 | Variable | Purpose | Example |
 | --- | --- | --- |
-| `BACKEND_URL` | Existing application variable used by the Next.js server rewrite. | `http://127.0.0.1:8000` for local development |
-| `FIELDLINE_DOCKER_BACKEND_URL` | Optional Docker-only override used by the Compose file for both build time and runtime. | `http://host.docker.internal:8000` |
-
-Do not put secrets in frontend environment variables that are exposed to browser code.
+| `BACKEND_URL` | Existing application variable used by the Next.js server rewrite; set it at build time for deployment. | `http://127.0.0.1:8000` locally, or the backend HTTPS URL in production |
+| `FIELDLINE_DOCKER_BACKEND_URL` | Optional Docker-only override used by Compose for both build time and runtime. | `http://host.docker.internal:8000` |
 
 For Docker, override the backend URL when the backend is exposed somewhere other than host port `8000`:
 
@@ -103,9 +115,11 @@ The frontend does not require Redis, a worker, or any other local supporting ser
 ## Checks
 
 ```bash
+npm ci
 npm run typecheck
 npm run build
 npm run e2e
+docker build --build-arg BACKEND_URL=http://127.0.0.1:8000 --tag fieldline-crm-frontend:local .
 ```
 
 The real-backend E2E workflow starts PostgreSQL and the companion backend before running the frontend tests.

@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: fieldline-frontend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   checks:
     runs-on: ubuntu-latest
@@ -21,9 +25,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
 
       - name: Install frontend
-        run: npm install
+        run: npm ci --no-audit --no-fund
 
       - name: Typecheck frontend
         run: npm run typecheck
@@ -37,4 +42,9 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run browser smoke tests
+        env:
+          BACKEND_URL: http://127.0.0.1:8000
         run: npx playwright test e2e/smoke.spec.ts e2e/standout.spec.ts
+
+      - name: Build frontend Docker image
+        run: docker build --pull --build-arg BACKEND_URL=http://127.0.0.1:8000 --tag fieldline-crm-frontend:ci .
