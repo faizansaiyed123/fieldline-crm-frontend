@@ -313,3 +313,34 @@ export type AutomationRule = {
   created_at: string;
   updated_at: string;
 };
+
+
+export type ActivityItem = {
+  id: string;
+  organization_id: string;
+  actor_user_id: string | null;
+  company_id: string | null;
+  contact_id: string | null;
+  opportunity_id: string | null;
+  activity_type: "note" | "call" | "email" | "meeting";
+  title: string;
+  body: string | null;
+  occurred_at: string;
+};
+
+export type TaskItem = {
+  id: string;
+  organization_id: string;
+  created_by_user_id: string;
+  assigned_to_user_id: string | null;
+  company_id: string | null;
+  contact_id: string | null;
+  opportunity_id: string | null;
+  title: string;
+  description: string | null;
+  priority: "low" | "normal" | "high";
+  due_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

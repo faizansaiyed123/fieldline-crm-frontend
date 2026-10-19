@@ -162,7 +162,7 @@ function CreateView({ canShare, onClose, onCreate, busy, error }: {
         lifecycle: lifecycle ? [lifecycle] : [],
         company_id: null,
         owner_user_id: null,
-        has_email: hasEmail,
+        has_email: hasEmail ? true : null,
         sort,
       },
     });
@@ -219,8 +219,8 @@ function EditView({
         ...view.definition,
         query: query || null,
         lifecycle: lifecycle ? [lifecycle] : [],
-        has_email: hasEmail,
-        sort: "name_asc",
+        has_email: hasEmail ? true : null,
+        sort,
       },
     });
   }

@@ -6,7 +6,15 @@ import { useDrawerBehavior } from "@/lib/use-drawer-behavior";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
-import type { Opportunity, OpportunityList, StuckOpportunityResponse } from "@/lib/types";
+import type {
+  Company,
+  CompanyList,
+  Contact,
+  ContactList,
+  Opportunity,
+  OpportunityList,
+  StuckOpportunityResponse,
+} from "@/lib/types";
 import { Badge, Button, ErrorState, SectionTitle, StatCard } from "@/components/ui";
 
 type Stage = { id: string; name: string; order_index: number; win_probability: string | number; is_closed: boolean; is_won: boolean };
@@ -36,6 +44,16 @@ export default function OpportunitiesPage() {
     enabled,
     queryFn: () => apiFetch<StuckOpportunityResponse>(prefix + "/pipeline/stuck?limit=10", {}, accessToken),
   });
+  const companies = useQuery({
+    queryKey: ["companies-select", organizationId],
+    enabled,
+    queryFn: () => apiFetch<CompanyList>(`${prefix}/companies?page=1&page_size=100`, {}, accessToken),
+  });
+  const contacts = useQuery({
+    queryKey: ["contacts-select", organizationId],
+    enabled,
+    queryFn: () => apiFetch<ContactList>(`${prefix}/contacts?page=1&page_size=100`, {}, accessToken),
+  });
 
   const update = useMutation({
     mutationFn: ({ id, input }: { id: string; input: Record<string, unknown> }) =>
@@ -43,6 +61,9 @@ export default function OpportunitiesPage() {
     onSuccess: (opportunity) => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunity-count", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["pipeline-stuck", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
       setSelected(opportunity);
     },
   });
@@ -52,6 +73,7 @@ export default function OpportunitiesPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunity-count", organizationId] });
       setSelected(null);
     },
   });
@@ -78,6 +100,9 @@ export default function OpportunitiesPage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["opportunities", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["opportunities", "dashboard", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["opportunity-count", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["pipeline-stuck", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
       setShowCreate(false);
     },
   });
@@ -152,6 +177,8 @@ export default function OpportunitiesPage() {
         <OpportunityDrawer
           opportunity={selected}
           stages={stages.data ?? []}
+          companies={companies.data?.items ?? []}
+          contacts={contacts.data?.items ?? []}
           onClose={() => setSelected(null)}
           onSave={(input) => update.mutate({ id: selected.id, input })}
           onArchive={() => archive.mutate(selected.id)}
@@ -162,6 +189,8 @@ export default function OpportunitiesPage() {
       {showCreate ? (
         <CreateOpportunity
           stages={stages.data ?? []}
+          companies={companies.data?.items ?? []}
+          contacts={contacts.data?.items ?? []}
           onClose={() => setShowCreate(false)}
           onCreate={(input) => create.mutate(input)}
           busy={create.isPending}
@@ -174,12 +203,16 @@ export default function OpportunitiesPage() {
 
 function CreateOpportunity({
   stages,
+  companies,
+  contacts,
   onClose,
   onCreate,
   busy,
   error,
 }: {
   stages: Stage[];
+  companies: Company[];
+  contacts: Contact[];
   onClose: () => void;
   onCreate: (input: Record<string, unknown>) => void;
   busy: boolean;
@@ -188,11 +221,19 @@ function CreateOpportunity({
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [stageId, setStageId] = useState("");
+  const [companyId, setCompanyId] = useState("");
+  const [contactId, setContactId] = useState("");
   const [expectedCloseDate, setExpectedCloseDate] = useState("");
 
   React.useEffect(() => {
     if (!stageId && stages[0]?.id) setStageId(stages[0].id);
   }, [stageId, stages]);
+
+  function handleContactChange(nextContactId: string) {
+    setContactId(nextContactId);
+    const matched = contacts.find((c) => c.id === nextContactId);
+    if (matched?.company_id) setCompanyId(matched.company_id);
+  }
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -200,6 +241,8 @@ function CreateOpportunity({
       name,
       amount: amount ? Number(amount) : null,
       stage_id: stageId,
+      company_id: companyId || null,
+      contact_id: contactId || null,
       expected_close_date: expectedCloseDate || null,
     });
   }
@@ -211,7 +254,9 @@ function CreateOpportunity({
         <form className="stack-form" onSubmit={submit}>
           <label>Name<input value={name} onChange={(e) => setName(e.target.value)} required /></label>
           <label>Amount<input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} /></label>
-          <label>Stage<select value={stageId} onChange={(e) => setStageId(e.target.value)} required>{stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.name}</option>)}</select></label>
+          <label>Stage<select value={stageId} onChange={(e) => setStageId(e.target.value)} required>{stages.filter((stage) => !stage.is_closed).map((stage) => <option key={stage.id} value={stage.id}>{stage.name}</option>)}</select></label>
+          <label>Company<select value={companyId} onChange={(e) => setCompanyId(e.target.value)}><option value="">No linked company</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+          <label>Primary contact<select value={contactId} onChange={(e) => handleContactChange(e.target.value)}><option value="">No linked contact</option>{contacts.map((c) => <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>)}</select></label>
           <label>Expected close<input type="date" value={expectedCloseDate} onChange={(e) => setExpectedCloseDate(e.target.value)} /></label>
           {error ? <div className="form-error" role="alert">{error}</div> : null}
           <Button type="submit" disabled={busy || !stageId}>{busy ? "Creating…" : "Create opportunity"}</Button>
@@ -225,6 +270,8 @@ function CreateOpportunity({
 function OpportunityDrawer({
   opportunity,
   stages,
+  companies,
+  contacts,
   onClose,
   onSave,
   onArchive,
@@ -233,6 +280,8 @@ function OpportunityDrawer({
 }: {
   opportunity: Opportunity;
   stages: Stage[];
+  companies: Company[];
+  contacts: Contact[];
   onClose: () => void;
   onSave: (input: Record<string, unknown>) => void;
   onArchive: () => void;
@@ -244,6 +293,8 @@ function OpportunityDrawer({
   useDrawerBehavior(true, onClose);
   const [amount, setAmount] = useState(opportunity.amount ?? "");
   const [stageId, setStageId] = useState(opportunity.stage_id);
+  const [companyId, setCompanyId] = useState(opportunity.company_id ?? "");
+  const [contactId, setContactId] = useState(opportunity.contact_id ?? "");
   const [expectedCloseDate, setExpectedCloseDate] = useState(opportunity.expected_close_date ?? "");
   const [lostReason, setLostReason] = useState(opportunity.lost_reason ?? "");
 
@@ -251,6 +302,8 @@ function OpportunityDrawer({
     setName(opportunity.name);
     setAmount(opportunity.amount ?? "");
     setStageId(opportunity.stage_id);
+    setCompanyId(opportunity.company_id ?? "");
+    setContactId(opportunity.contact_id ?? "");
     setExpectedCloseDate(opportunity.expected_close_date ?? "");
     setLostReason(opportunity.lost_reason ?? "");
   }, [opportunity]);
@@ -258,12 +311,20 @@ function OpportunityDrawer({
   const selectedStage = stages.find((stage) => stage.id === stageId) ?? currentStage;
   const willBeLost = Boolean(selectedStage?.is_closed && !selectedStage.is_won);
 
+  function handleContactChange(nextContactId: string) {
+    setContactId(nextContactId);
+    const matched = contacts.find((c) => c.id === nextContactId);
+    if (matched?.company_id) setCompanyId(matched.company_id);
+  }
+
   function submit(event: FormEvent) {
     event.preventDefault();
     onSave({
       name,
       amount: amount ? Number(amount) : null,
       stage_id: stageId,
+      company_id: companyId || null,
+      contact_id: contactId || null,
       expected_close_date: expectedCloseDate || null,
       lost_reason: willBeLost ? lostReason : null,
     });
@@ -280,6 +341,8 @@ function OpportunityDrawer({
           <label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>
           <label>Amount<input type="number" min="0" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} /></label>
           <label>Stage<select value={stageId} onChange={(event) => setStageId(event.target.value)} required>{stages.map((stage) => <option key={stage.id} value={stage.id}>{stage.name}</option>)}</select></label>
+          <label>Company<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}><option value="">No linked company</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
+          <label>Primary contact<select value={contactId} onChange={(event) => handleContactChange(event.target.value)}><option value="">No linked contact</option>{contacts.map((c) => <option key={c.id} value={c.id}>{c.first_name} {c.last_name}</option>)}</select></label>
           {willBeLost ? <label>Lost reason<input value={lostReason} onChange={(event) => setLostReason(event.target.value)} required maxLength={300} /></label> : null}
           <label>Expected close<input type="date" value={expectedCloseDate} onChange={(event) => setExpectedCloseDate(event.target.value)} /></label>
           {error ? <div className="form-error" role="alert">{error}</div> : null}

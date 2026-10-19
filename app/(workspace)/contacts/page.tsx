@@ -6,7 +6,16 @@ import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { useDrawerBehavior } from "@/lib/use-drawer-behavior";
-import type { Contact, ContactList, RelationshipHealth, TimelineResponse } from "@/lib/types";
+import type {
+  ActivityItem,
+  Company,
+  CompanyList,
+  Contact,
+  ContactList,
+  RelationshipHealth,
+  TaskItem,
+  TimelineResponse,
+} from "@/lib/types";
 import { Badge, Button, EmptyState, SectionTitle } from "@/components/ui";
 
 export default function ContactsPage() {
@@ -35,12 +44,20 @@ export default function ContactsPage() {
       ),
   });
 
+  const companies = useQuery({
+    queryKey: ["companies-select", organizationId],
+    enabled,
+    queryFn: () =>
+      apiFetch<CompanyList>(`${prefix}/companies?page=1&page_size=100`, {}, accessToken),
+  });
+
   const update = useMutation({
     mutationFn: ({ id, input }: { id: string; input: Record<string, unknown> }) =>
       apiFetch<Contact>(`${prefix}/contacts/${id}`, { method: "PATCH", body: input }, accessToken),
     onSuccess: (contact) => {
       void queryClient.invalidateQueries({ queryKey: ["contacts", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["contacts", "dashboard", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
       setSelected(contact);
       setError("");
     },
@@ -69,18 +86,15 @@ export default function ContactsPage() {
     onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Could not create contact"),
   });
 
-  async function openContact(contact: Contact) {
-    setSelected(contact);
-    setHealth(null);
-    setTimeline(null);
+  async function refreshContactContext(contactId: string) {
     const [healthResult, timelineResult] = await Promise.allSettled([
       apiFetch<RelationshipHealth>(
-        `${prefix}/contacts/${contact.id}/relationship-health`,
+        `${prefix}/contacts/${contactId}/relationship-health`,
         {},
         accessToken,
       ),
       apiFetch<TimelineResponse>(
-        `${prefix}/contacts/${contact.id}/timeline?limit=20`,
+        `${prefix}/contacts/${contactId}/timeline?limit=20`,
         {},
         accessToken,
       ),
@@ -88,6 +102,37 @@ export default function ContactsPage() {
     if (healthResult.status === "fulfilled") setHealth(healthResult.value);
     if (timelineResult.status === "fulfilled") setTimeline(timelineResult.value);
   }
+
+  async function openContact(contact: Contact) {
+    setSelected(contact);
+    setHealth(null);
+    setTimeline(null);
+    await refreshContactContext(contact.id);
+  }
+
+  const logActivity = useMutation({
+    mutationFn: (input: Record<string, unknown>) =>
+      apiFetch<ActivityItem>(`${prefix}/activities`, { method: "POST", body: input }, accessToken),
+    onSuccess: async () => {
+      if (selected) await refreshContactContext(selected.id);
+      void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
+    },
+    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Could not log activity"),
+  });
+
+  const createTask = useMutation({
+    mutationFn: (input: Record<string, unknown>) =>
+      apiFetch<TaskItem>(`${prefix}/tasks`, { method: "POST", body: input }, accessToken),
+    onSuccess: async () => {
+      if (selected) await refreshContactContext(selected.id);
+      void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
+      void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
+    },
+    onError: (mutationError) => setError(mutationError instanceof Error ? mutationError.message : "Could not create task"),
+  });
 
   return (
     <div className="page">
@@ -145,18 +190,27 @@ export default function ContactsPage() {
       {selected ? (
         <ContactDrawer
           contact={selected}
+          companies={companies.data?.items ?? []}
           health={health}
           timeline={timeline}
           onClose={() => setSelected(null)}
           onSave={(input) => update.mutate({ id: selected.id, input })}
           onArchive={() => archive.mutate(selected.id)}
-          busy={update.isPending || archive.isPending}
+          onLogActivity={(input) => logActivity.mutate(input)}
+          onCreateTask={(input) => createTask.mutate(input)}
+          busy={update.isPending || archive.isPending || logActivity.isPending || createTask.isPending}
           error={error}
         />
       ) : null}
 
       {showCreate ? (
-        <CreateContact onClose={() => setShowCreate(false)} onCreate={(input) => create.mutate(input)} busy={create.isPending} error={error} />
+        <CreateContact
+          companies={companies.data?.items ?? []}
+          onClose={() => setShowCreate(false)}
+          onCreate={(input) => create.mutate(input)}
+          busy={create.isPending}
+          error={error}
+        />
       ) : null}
     </div>
   );
@@ -164,20 +218,26 @@ export default function ContactsPage() {
 
 function ContactDrawer({
   contact,
+  companies,
   health,
   timeline,
   onClose,
   onSave,
   onArchive,
+  onLogActivity,
+  onCreateTask,
   busy,
   error,
 }: {
   contact: Contact;
+  companies: Company[];
   health: RelationshipHealth | null;
   timeline: TimelineResponse | null;
   onClose: () => void;
   onSave: (input: Record<string, unknown>) => void;
   onArchive: () => void;
+  onLogActivity: (input: Record<string, unknown>) => void;
+  onCreateTask: (input: Record<string, unknown>) => void;
   busy: boolean;
   error: string;
 }) {
@@ -188,6 +248,15 @@ function ContactDrawer({
   const [phone, setPhone] = useState(contact.phone ?? "");
   const [jobTitle, setJobTitle] = useState(contact.job_title ?? "");
   const [lifecycle, setLifecycle] = useState(contact.lifecycle);
+  const [companyId, setCompanyId] = useState(contact.company_id ?? "");
+
+  const [activityType, setActivityType] = useState<"note" | "call" | "email" | "meeting">("note");
+  const [activityTitle, setActivityTitle] = useState("");
+  const [activityBody, setActivityBody] = useState("");
+
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskPriority, setTaskPriority] = useState<"low" | "normal" | "high">("normal");
+  const [taskDueDate, setTaskDueDate] = useState("");
 
   useEffect(() => {
     setFirstName(contact.first_name);
@@ -196,6 +265,7 @@ function ContactDrawer({
     setPhone(contact.phone ?? "");
     setJobTitle(contact.job_title ?? "");
     setLifecycle(contact.lifecycle);
+    setCompanyId(contact.company_id ?? "");
   }, [contact]);
 
   function submit(event: FormEvent) {
@@ -207,7 +277,36 @@ function ContactDrawer({
       phone: phone || null,
       job_title: jobTitle || null,
       lifecycle,
+      company_id: companyId || null,
     });
+  }
+
+  function submitActivity(event: FormEvent) {
+    event.preventDefault();
+    if (!activityTitle.trim()) return;
+    onLogActivity({
+      contact_id: contact.id,
+      company_id: contact.company_id,
+      activity_type: activityType,
+      title: activityTitle,
+      body: activityBody || null,
+    });
+    setActivityTitle("");
+    setActivityBody("");
+  }
+
+  function submitTask(event: FormEvent) {
+    event.preventDefault();
+    if (!taskTitle.trim()) return;
+    onCreateTask({
+      contact_id: contact.id,
+      company_id: contact.company_id,
+      title: taskTitle,
+      priority: taskPriority,
+      due_at: taskDueDate ? new Date(`${taskDueDate}T09:00:00Z`).toISOString() : null,
+    });
+    setTaskTitle("");
+    setTaskDueDate("");
   }
 
   return (
@@ -265,6 +364,24 @@ function ContactDrawer({
         </div>
 
         <div className="drawer-form-divider" />
+        <form className="stack-form" onSubmit={submitActivity}>
+          <div><span className="eyebrow">Engagement</span><h3 className="drawer-section-title">Log activity</h3></div>
+          <label>Activity type<select value={activityType} onChange={(e) => setActivityType(e.target.value as "note" | "call" | "email" | "meeting")}><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option><option value="meeting">Meeting</option></select></label>
+          <label>Activity summary<input value={activityTitle} onChange={(e) => setActivityTitle(e.target.value)} placeholder="e.g., Discovery call with stakeholder" minLength={2} required /></label>
+          <label>Notes<input value={activityBody} onChange={(e) => setActivityBody(e.target.value)} placeholder="Optional call notes or next steps" /></label>
+          <Button type="submit" variant="secondary" disabled={busy}>Record activity</Button>
+        </form>
+
+        <div className="drawer-form-divider" />
+        <form className="stack-form" onSubmit={submitTask}>
+          <div><span className="eyebrow">Follow-through</span><h3 className="drawer-section-title">Schedule follow-up task</h3></div>
+          <label>Task title<input value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="e.g., Send pricing proposal" minLength={2} required /></label>
+          <label>Task priority<select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value as "low" | "normal" | "high")}><option value="low">low</option><option value="normal">normal</option><option value="high">high</option></select></label>
+          <label>Task due date<input type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)} /></label>
+          <Button type="submit" variant="secondary" disabled={busy}>Add task</Button>
+        </form>
+
+        <div className="drawer-form-divider" />
         <form className="stack-form" onSubmit={submit}>
           <div><span className="eyebrow">Edit record</span><h3 className="drawer-section-title">Contact details</h3></div>
           <label>First name<input value={firstName} onChange={(event) => setFirstName(event.target.value)} required /></label>
@@ -272,6 +389,7 @@ function ContactDrawer({
           <label>Email<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>
           <label>Phone<input value={phone} onChange={(event) => setPhone(event.target.value)} /></label>
           <label>Job title<input value={jobTitle} onChange={(event) => setJobTitle(event.target.value)} /></label>
+          <label>Company<select value={companyId} onChange={(event) => setCompanyId(event.target.value)}><option value="">No linked company</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
           <label>Lifecycle<select value={lifecycle} onChange={(event) => setLifecycle(event.target.value as Contact["lifecycle"])}><option value="lead">lead</option><option value="prospect">prospect</option><option value="customer">customer</option><option value="churned">churned</option></select></label>
           {error ? <div className="form-error" role="alert">{error}</div> : null}
           <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</Button>
@@ -283,11 +401,13 @@ function ContactDrawer({
 }
 
 function CreateContact({
+  companies,
   onClose,
   onCreate,
   busy,
   error,
 }: {
+  companies: Company[];
   onClose: () => void;
   onCreate: (input: Record<string, unknown>) => void;
   busy: boolean;
@@ -296,11 +416,22 @@ function CreateContact({
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [jobTitle, setJobTitle] = useState("");
+  const [companyId, setCompanyId] = useState("");
   const [lifecycle, setLifecycle] = useState("lead");
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    onCreate({ first_name: firstName, last_name: lastName, email: email || null, lifecycle });
+    onCreate({
+      first_name: firstName,
+      last_name: lastName,
+      email: email || null,
+      phone: phone || null,
+      job_title: jobTitle || null,
+      company_id: companyId || null,
+      lifecycle,
+    });
   }
 
   return (
@@ -311,6 +442,9 @@ function CreateContact({
           <label>First name<input value={firstName} onChange={(e) => setFirstName(e.target.value)} required /></label>
           <label>Last name<input value={lastName} onChange={(e) => setLastName(e.target.value)} required /></label>
           <label>Email<input value={email} onChange={(e) => setEmail(e.target.value)} type="email" /></label>
+          <label>Phone<input value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
+          <label>Job title<input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} /></label>
+          <label>Company<select value={companyId} onChange={(e) => setCompanyId(e.target.value)}><option value="">No linked company</option>{companies.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
           <label>Lifecycle<select value={lifecycle} onChange={(e) => setLifecycle(e.target.value)}><option>lead</option><option>prospect</option><option>customer</option><option>churned</option></select></label>
           {error ? <div className="form-error" role="alert">{error}</div> : null}
           <Button type="submit" disabled={busy}>{busy ? "Creating…" : "Create contact"}</Button>
