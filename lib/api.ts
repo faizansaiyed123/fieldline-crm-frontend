@@ -62,7 +62,6 @@ async function request<T>(
       const payload = (await response.json()) as { detail?: string };
       message = payload.detail ?? message;
     } catch {
-      // Keep the status-derived message.
     }
     throw new ApiError(response.status, message);
   }

@@ -11,7 +11,6 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Keep the fallback intentionally quiet; sensitive error details stay out of the UI.
     void error;
   }, [error]);
 
