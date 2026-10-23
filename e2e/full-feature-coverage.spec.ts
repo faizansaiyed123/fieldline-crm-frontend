@@ -197,14 +197,16 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
   const archivedCompany = await apiCall(page, "/organizations/" + org + "/companies/" + company.id, workspace.token);
   expect(archivedCompany.status).toBe(404);
 
-  for (let index = 0; index < 26; index += 1) {
-    const response = await apiCall(page, "/organizations/" + org + "/companies", workspace.token, "POST", {
-      name: "Directory Account " + workspace.stamp + "-" + index,
-      website: "https://directory-" + workspace.stamp + "-" + index + ".example",
-      phone: null,
-    });
-    expect(response.status).toBe(201);
-  }
+  const companyCreations = await Promise.all(
+    Array.from({ length: 26 }, (_, index) =>
+      apiCall(page, "/organizations/" + org + "/companies", workspace.token, "POST", {
+        name: "Directory Account " + workspace.stamp + "-" + index,
+        website: "https://directory-" + workspace.stamp + "-" + index + ".example",
+        phone: null,
+      }),
+    ),
+  );
+  expect(companyCreations.every((response) => response.status === 201)).toBe(true);
   const companyDirectory = await apiCall(page, "/organizations/" + org + "/companies?page=1&page_size=25&q=Directory%20Account", workspace.token);
   expect(companyDirectory.status).toBe(200);
   expect(companyDirectory.body.total).toBe(26);
@@ -226,16 +228,17 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
     ["Sara", "Ahmed"], ["Julian", "Brooks"], ["Anika", "Shah"], ["Caleb", "Turner"],
     ["Yasmin", "Ali"], ["Felix", "Ward"],
   ];
-  for (let index = 0; index < sampleContacts.length; index += 1) {
-    const item = sampleContacts[index];
-    const response = await apiCall(page, "/organizations/" + org + "/contacts", workspace.token, "POST", {
-      first_name: item[0],
-      last_name: item[1],
-      email: "directory-" + workspace.stamp + "-" + index + "@example.com",
-      lifecycle: "prospect",
-    });
-    expect(response.status).toBe(201);
-  }
+  const contactCreations = await Promise.all(
+    sampleContacts.map((item, index) =>
+      apiCall(page, "/organizations/" + org + "/contacts", workspace.token, "POST", {
+        first_name: item[0],
+        last_name: item[1],
+        email: "directory-" + workspace.stamp + "-" + index + "@example.com",
+        lifecycle: "prospect",
+      }),
+    ),
+  );
+  expect(contactCreations.every((response) => response.status === 201)).toBe(true);
 
   const contactDirectory = await apiCall(page, "/organizations/" + org + "/contacts?page=1&page_size=25&q=directory-" + workspace.stamp, workspace.token);
   expect(contactDirectory.status).toBe(200);
@@ -250,6 +253,8 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
   await page.getByRole("button", { name: "Previous" }).click();
   await expect(page.getByText("Page 1 of 2")).toBeVisible();
 
+  await page.getByRole("link", { name: "Overview" }).click();
+  await expect(page.getByRole("heading", { name: "Good morning. Here is the signal." })).toBeVisible();
   await page.getByRole("button", { name: "Sign out" }).click();
   await expect(page.getByRole("heading", { name: "Sign in to your workspace." })).toBeVisible();
   await page.getByLabel("Email").fill(workspace.email);
