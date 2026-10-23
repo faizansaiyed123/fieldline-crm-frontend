@@ -54,7 +54,7 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByLabel("Expected close").fill("2026-10-15");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByLabel("Expected close")).toHaveValue("2026-10-15");
-  await page.getByLabel("Close").click();
+  await page.getByRole("button", { name: "Close" }).click();
   await page.screenshot({ path: "test-results/walkthrough/05-pipeline.png", fullPage: true });
 
   await page.getByRole("link", { name: "Saved views" }).click();
