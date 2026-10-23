@@ -1,15 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-test("real browser flow reaches the PostgreSQL-backed CRM", async ({ page }) => {
+test("workspace setup and contact creation work end to end", async ({ page }) => {
   const stamp = Date.now();
-  const organization = `Browser E2E ${stamp}`;
+  const organization = `Cedarfield Consulting ${stamp}`;
   const email = `e2e-${stamp}@example.com`;
 
   await page.goto("/signup");
   await expect(page.getByRole("heading", { name: "Start with clean customer context." })).toBeVisible();
 
   await page.getByLabel("Organization").fill(organization);
-  await page.getByLabel("Your name").fill("Browser Tester");
+  await page.getByLabel("Your name").fill("Morgan Reed");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("Correct Horse Battery Staple");
   await page.getByRole("button", { name: "Create workspace" }).click();
@@ -32,13 +32,13 @@ test("real browser flow reaches the PostgreSQL-backed CRM", async ({ page }) => 
   await expect(page.getByRole("heading", { name: "Contacts", exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Add contact" }).click();
-  await page.getByLabel("First name").fill("Ada");
-  await page.getByLabel("Last name").fill("Lovelace");
-  await page.getByLabel("Email").fill(`ada-${stamp}@example.com`);
+  await page.getByLabel("First name").fill("Noor");
+  await page.getByLabel("Last name").fill("Patel");
+  await page.getByLabel("Email").fill(`noor-${stamp}@example.com`);
   await page.getByLabel("Lifecycle").selectOption("prospect");
   await page.getByRole("button", { name: "Create contact" }).click();
 
-  await expect(page.getByText("Ada Lovelace")).toBeVisible();
+  await expect(page.getByText("Noor Patel")).toBeVisible();
 
   await page.getByRole("link", { name: "Overview" }).click();
   await expect(contactsCard.locator("strong")).toHaveText("1");

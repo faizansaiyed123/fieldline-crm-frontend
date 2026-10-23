@@ -4,6 +4,10 @@ Web application for **Fieldline CRM**.
 
 Fieldline is a focused CRM workspace for customer relationships, sales pipeline execution, explainable operational intelligence, data quality, and follow-through.
 
+## Product walkthrough
+
+Explore the [Fieldline CRM product walkthrough](docs/PRODUCT-WALKTHROUGH.md), including connected customer workflows and examples of persisted state being read back through the API.
+
 ## Stack
 
 - Next.js 16
