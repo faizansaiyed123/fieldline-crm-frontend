@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
 import { hasAdminAccess } from "@/lib/permissions";
@@ -9,6 +10,7 @@ import { Badge, Button, SectionTitle } from "@/components/ui";
 
 export default function ImportsPage() {
   const { accessToken, organizationId, user } = useAuth();
+  const queryClient = useQueryClient();
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -54,6 +56,13 @@ export default function ImportsPage() {
       );
       if (!dryRun) {
         setPreview((current) => current ? { ...current, status: result.status, committed_rows: result.committed_rows, completed_at: new Date().toISOString() } : current);
+        void queryClient.invalidateQueries({ queryKey: ["contacts", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["contacts", "dashboard", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["views", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["view-execute"] });
+        void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
       }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Commit failed");
