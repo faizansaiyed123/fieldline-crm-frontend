@@ -8,6 +8,10 @@ Fieldline is a focused CRM workspace for customer relationships, sales pipeline 
 
 Explore the [Fieldline CRM product walkthrough](docs/PRODUCT-WALKTHROUGH.md), including connected customer workflows and examples of persisted state being read back through the API.
 
+## Feature coverage
+
+Review the [Fieldline CRM feature coverage matrix](docs/FEATURE-COVERAGE.md) for end-to-end, API/database and backend regression coverage, including the workflows that extend beyond the main walkthrough.
+
 ## Stack
 
 - Next.js 16

@@ -95,7 +95,7 @@ jobs:
         run: npx playwright install chromium
 
       - name: Run real browser E2E
-        run: npx playwright test e2e/real-backend.spec.ts e2e/deep-product.spec.ts e2e/standout.spec.ts e2e/smoke.spec.ts
+        run: npx playwright test e2e/real-backend.spec.ts e2e/deep-product.spec.ts e2e/full-feature-coverage.spec.ts e2e/standout.spec.ts e2e/smoke.spec.ts
 
       - name: Publish walkthrough screenshots
         if: success()

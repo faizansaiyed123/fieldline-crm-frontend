@@ -103,31 +103,112 @@ An automation rule is created and then shown in the rule list. The rule configur
 
 The settings view brings workspace-level configuration and system-health information together.
 
+
+## Record management and full feature coverage
+
+### 14. Record management
+
+![Record management](visuals/14-record-management.png)
+
+The record-management journey searches and edits a company and contact, checks the contact, company, and relationship endpoints, then archives the records and confirms that archived details are no longer returned.
+
+### 15. Company directory pagination
+
+![Company directory pagination](visuals/15-company-pagination.png)
+
+The company directory is populated with more records than fit on one page. Moving forward and back verifies that the list controls navigate the API-backed result set.
+
+### 16. Contact directory pagination
+
+![Contact directory pagination](visuals/16-contact-pagination.png)
+
+The contacts directory exercises both pages of a multi-page result, including returning to the first page.
+
+### 17. Authentication and session recovery
+
+![Authentication and session recovery](visuals/17-auth-session.png)
+
+The journey signs out, verifies that an incorrect password is rejected, signs in with the correct credentials, and reloads the workspace to exercise refresh-session recovery.
+
+### 18. Won, lost, and archived pipeline outcomes
+
+![Pipeline outcomes](visuals/18-pipeline-outcomes.png)
+
+Separate opportunities are moved into Closed Won and Closed Lost. The lost transition requires a reason, won/lost counts are checked, and an archived opportunity is confirmed absent from the normal list and detail API.
+
+### 19. Opportunity directory pagination
+
+![Opportunity directory pagination](visuals/19-opportunity-pagination.png)
+
+The pipeline is populated beyond one page, and Next/Previous navigation is checked against the API-backed opportunity list.
+
+### 20. Automation execution history
+
+![Automation execution history](visuals/20-automation-execution.png)
+
+The two pipeline outcomes trigger separate configured rules. The resulting run records are read back from the backend, and their generated follow-up tasks are checked independently.
+
+### 21. Planner task completion
+
+![Planner task completion](visuals/21-planner-task.png)
+
+An overdue task enters the planner with its reason and next action. Completing it removes the item from the active work queue and the task API confirms the completed state.
+
+### 22. Operating rules and system health
+
+![Operating rules and system health](visuals/22-rules-system-health.png)
+
+An operating threshold is changed, checked through the API, then confirmed after reload. An invalid threshold is rejected, while the health endpoint reports database connectivity, migration state, and the fuzzy-matching extension.
+
+### 23. Duplicate resolution with relationship preservation
+
+![Data-quality merge](visuals/23-quality-merge.png)
+
+The data-quality workspace identifies duplicate contacts and similar company records. Merging each pair keeps the survivor, retires the duplicate, and verifies that activities, tasks, opportunities, and contact-to-company links still point to the surviving records.
+
+### 24. Saved-view lifecycle
+
+![Saved-view lifecycle](visuals/24-saved-view-lifecycle.png)
+
+A shared saved view is created and executed, its definition is edited, the version number advances, and its sorting and sharing settings are read back from the API before the view is deleted.
+
+### 25. Import validation and duplicate protection
+
+![Import validation](visuals/25-import-validation.png)
+
+An invalid email and a duplicate organization email are both rejected during preview. The UI prevents committing invalid rows, leaving existing contact data unchanged.
+
+### 26. Import commit and read-back
+
+![Import commit and read-back](visuals/26-import-readback.png)
+
+A valid CSV is previewed and dry-run, committed, and verified through both the persisted import-job record and the ordinary contacts endpoint.
+
 ## A persistence example
 
-The walkthrough follows several write/read-back sequences:
+The walkthrough includes create, read, update, and archive lifecycles; server-side search and page navigation; valid and invalid authentication; relationship and timeline reads; Won/Lost stage transitions and their resulting automation runs; task completion; saved-view versioning, execution, sharing and deletion; import validation, dry-run rollback and commit; and contact/company merge operations with relationship-transfer checks.
 
-1. A company is created and renamed. After the company drawer closes, the page is reloaded and the new name is checked in the company table.
-2. A contact is created and connected to that company. An activity and follow-up task are saved from the contact detail panel, then shown in its recent context.
-3. An opportunity is attached to the same company and contact. The expected close date is updated and checked again after saving.
-4. A saved view is created and executed. Its result count is based on the matching stored contact record.
-5. A CSV import passes validation, completes a dry run, and is committed. The imported contact is then retrieved from the regular Contacts screen.
+The database-backed browser suite issues normal UI requests and direct API reads through the frontend proxy into the FastAPI service. It verifies the persisted result after the write rather than treating a success message alone as proof of persistence. The full API/security regression suite is run separately by the backend CI workflow against PostgreSQL. Some UI-only resilience checks deliberately use controlled fixtures for transient errors, refresh concurrency, viewport bounds and keyboard interaction; those checks are not represented as real-database evidence in these screenshots.
 
-These screenshots are captured in an isolated PostgreSQL-backed integration workspace using synthetic example records; they are not production customer data. The workflow runs Alembic migrations and starts the backend against PostgreSQL before exercising the browser, so the core journey is not fulfilled by mocked API responses.
+These screenshots are captured in an isolated PostgreSQL-backed integration workspace using synthetic example records; they are not production customer data. The workflow runs Alembic migrations and starts the backend against PostgreSQL before exercising the browser.
 
 ## Feature map
 
-| Area | Main action shown | Connected service behavior |
+| Area | User-facing action | Backend and persistence evidence |
 | --- | --- | --- |
-| Dashboard | Review workspace totals | Reads company, contact, opportunity, and attention summaries |
-| Companies | Create, edit, reload | Stores and returns company fields |
-| Contacts | Create and link a contact | Stores contact fields and company relationship |
-| Relationship context | Record activity and task | Writes engagement records and refreshes context |
-| Pipeline | Create and update an opportunity | Stores amount, links, stage, and expected close date |
-| Saved views | Save and execute a contact query | Persists a view definition and returns matching records |
-| Imports | Validate, dry run, commit | Applies the CSV import and reports committed rows |
-| Planner | Inspect prioritized work | Builds a work plan from workspace records |
-| Data quality | Review issue summary | Retrieves duplicate and quality findings |
-| Relationships | Select a contact | Reads its connected relationship graph |
-| Automation | Create a rule | Persists an automation definition |
-| Settings | Inspect configuration | Reads workspace settings and system health |
+| Authentication | Sign up, sign out, reject an incorrect password, sign in again and reload | Account and session APIs, refresh-cookie recovery and user identity read-back |
+| Dashboard and health | Review totals, retry errors and check readiness | Contacts, companies, opportunities, attention, /health, /ready and system-health routes |
+| Companies | Create, search, read details, edit, archive and paginate | Company create/list/get/update/archive operations and active-record filtering |
+| Contacts | Create, search, link a company, edit lifecycle/details, archive and paginate | Contact create/list/get/update/archive operations; relationship-health and timeline reads |
+| Pipeline stages | List and create a custom stage; reject duplicate stage names | Pipeline stage list/create, validation and uniqueness handling |
+| Opportunities | Create and link records, update the close date, mark Won or Lost with a reason, archive and paginate | Opportunity create/list/get/update/archive; stage-derived status and summary counts |
+| Relationship context | Record activity, create a task and inspect connected entities | Activity/task writes, audit records, relationship health, timeline and graph reads |
+| Planner | Surface overdue work and complete a task | Work-planner, attention queue and task PATCH read-back |
+| Data quality | Detect duplicates and merge contacts/companies | Duplicate candidates, merge operations, audit records and transferred relationship IDs |
+| Saved views | Create, share, execute, edit, re-sort, version and delete a view | Saved-view GET/POST/PATCH/DELETE/execute and version read-back |
+| Imports | Preview invalid/duplicate/valid CSVs, dry-run and commit | Import preview/job/commit APIs, duplicate validation, completed-job status and imported-contact read-back |
+| Automation | Create/toggle rules, transition opportunities and inspect execution history | Rule list/create/update, won/lost trigger processing, run list/detail and resulting task persistence |
+| Operating rules | Update valid thresholds and reject out-of-range values | Business-rule GET/PATCH, invalid-value response, planner/attention threshold updates |
+| Responsive and recovery behavior | Open detail panels, inspect keyboard behavior, use a narrow viewport and recover from controlled errors | Separate UI-focused Playwright tests; intentionally mocked cases are identified in the coverage matrix |
+
+The implementation and coverage matrix are documented in [FEATURE-COVERAGE.md](FEATURE-COVERAGE.md), including routes that are API-only and the additional backend security/regression tests.
