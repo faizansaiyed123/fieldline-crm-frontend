@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
+type ApiResult = { status: number; body: any };
 type Workspace = { token: string; organizationId: string; email: string; password: string; stamp: string };
 
 async function createWorkspace(page: Page, organizationLabel: string): Promise<Workspace> {
@@ -271,6 +272,8 @@ test("pipeline transitions trigger persisted won/lost automations and planner ta
   const stageResponse = await apiCall(page, "/organizations/" + org + "/pipeline/stages", workspace.token);
   expect(stageResponse.status).toBe(200);
   expect(stageResponse.body.some((item: any) => item.name === "Closed Won" && item.is_won)).toBe(true);
+  const openStage = stageResponse.body.find((item: any) => !item.is_closed);
+  expect(openStage).toBeTruthy();
   const createdStage = await apiCall(page, "/organizations/" + org + "/pipeline/stages", workspace.token, "POST", {
     name: "Partner qualification",
     win_probability: 0.6,
