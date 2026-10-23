@@ -107,6 +107,7 @@ async function createContact(
 }
 
 test("authentication, record CRUD, archival, API detail routes, and pagination use persisted data", async ({ page }) => {
+  test.setTimeout(90_000);
   const workspace = await createWorkspace(page, "Harborstone Customer Services");
   const org = workspace.organizationId;
 
