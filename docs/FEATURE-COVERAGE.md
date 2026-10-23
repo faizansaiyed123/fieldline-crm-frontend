@@ -58,7 +58,7 @@ These backend route groups are mounted under the configured API prefix. The brow
 
 ## Backend regression/security coverage
 
-The Backend CI workflow runs linting and compilation, applies migrations, then executes the complete pytest suite against its PostgreSQL service and builds the backend container. In addition to the browser flows, the backend suite includes dedicated test modules for:
+The Backend CI workflow runs linting and compilation, applies migrations, executes the complete pytest suite against its PostgreSQL service, and builds the backend container. It also collects statement and branch coverage for the backend application and publishes an HTML coverage report as a downloadable workflow artifact. In addition to the browser flows, the backend suite includes dedicated test modules for:
 
 - Authentication, session/CSRF behavior, password/session security and rate limits.
 - Authorization and organization/tenant scoping.
@@ -68,7 +68,11 @@ The Backend CI workflow runs linting and compilation, applies migrations, then e
 - Saved-view definitions, automation idempotency/history, business rules, attention/planner, data-quality logic, relationship graph and system health.
 - HTTP hardening, configuration and application readiness.
 
-The CI pass confirms these repository tests passed for the recorded backend commit. It does not mean production customer data or a deployed production database was exercised.
+The added `tests/test_payload_boundaries.py` integration suite exercises selected schema and query boundaries using PostgreSQL-backed requests: accepted minimum/maximum company and contact lengths; rejection of blank or overlong names, malformed website/email inputs, unsupported lifecycle values and oversized optional fields; and rejection of invalid page/page-size/search query parameters. It also verifies that invalid company/contact create requests do not leave records behind.
+
+Coverage output is currently diagnostic: there is no arbitrary minimum percentage enforced yet. This makes uncovered statements and branches visible for prioritizing the next set of tests, while avoiding a made-up threshold before the baseline has been reviewed. A coverage percentage by itself is not proof that assertions are meaningful or that every input combination has been tested.
+
+The CI pass confirms the repository tests passed for the recorded backend commit. It does not mean production customer data or a deployed production database was exercised.
 
 ## Fixture-backed UI tests — not counted as database evidence
 
