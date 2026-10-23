@@ -49,8 +49,8 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByLabel("Name").fill("Acme expansion");
   await page.getByLabel("Amount").fill("250000");
   await page.getByRole("button", { name: "Create opportunity" }).click();
-  await expect(page.getByText("Acme expansion")).toBeVisible();
-  await page.getByText("Acme expansion", { exact: true }).click();
+  await expect(page.getByRole("table").getByText("Acme expansion", { exact: true })).toBeVisible();
+  await page.getByRole("table").getByText("Acme expansion", { exact: true }).click();
   await page.getByLabel("Expected close").fill("2026-10-15");
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByLabel("Expected close")).toHaveValue("2026-10-15");
