@@ -506,8 +506,9 @@ test("quality merges preserve contact and company relationships in PostgreSQL", 
   await page.locator(".candidate").filter({ hasText: "Sapphire Logistic" }).first().click();
   await expect(page.getByRole("dialog", { name: "Choose the survivor" })).toBeVisible();
   const recordA = page.locator(".compare-card").nth(0);
-  const recordALabel = await recordA.innerText();
-  const survivorButton = recordALabel.includes(companyCandidate.first_label) ? "Merge into Record A" : "Merge into Record B";
+  const recordALines = (await recordA.innerText()).split("\n");
+  const recordAName = recordALines[1]?.trim();
+  const survivorButton = recordAName === companyCandidate.first_label ? "Merge into Record A" : "Merge into Record B";
   const companyMergeResponsePromise = page.waitForResponse((response) =>
     response.url().includes("/data-quality/company/") && response.request().method() === "POST",
   );
