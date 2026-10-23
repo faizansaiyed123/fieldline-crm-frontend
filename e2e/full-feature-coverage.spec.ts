@@ -205,8 +205,11 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
     });
     expect(response.status).toBe(201);
   }
-  await page.goto("/companies");
-  await page.reload();
+  const companyDirectory = await apiCall(page, "/organizations/" + org + "/companies?page=1&page_size=25&q=Directory%20Account", workspace.token);
+  expect(companyDirectory.status).toBe(200);
+  expect(companyDirectory.body.total).toBe(26);
+  expect(companyDirectory.body.page_size).toBe(25);
+  await page.getByLabel("Search companies").fill("Directory Account");
   await expect(page.getByText("Page 1 of 2")).toBeVisible();
   await page.screenshot({ path: "test-results/walkthrough/15-company-pagination.png", fullPage: true });
   await page.getByRole("button", { name: "Next" }).click();
@@ -234,8 +237,12 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
     expect(response.status).toBe(201);
   }
 
+  const contactDirectory = await apiCall(page, "/organizations/" + org + "/contacts?page=1&page_size=25&q=directory-" + workspace.stamp, workspace.token);
+  expect(contactDirectory.status).toBe(200);
+  expect(contactDirectory.body.total).toBe(26);
+  expect(contactDirectory.body.page_size).toBe(25);
   await page.getByRole("link", { name: "Contacts" }).click();
-  await page.reload();
+  await page.getByLabel("Search contacts").fill("directory-" + workspace.stamp);
   await expect(page.getByText("Page 1 of 2")).toBeVisible();
   await page.screenshot({ path: "test-results/walkthrough/16-contact-pagination.png", fullPage: true });
   await page.getByRole("button", { name: "Next" }).click();
@@ -343,8 +350,15 @@ test("pipeline transitions trigger persisted won/lost automations and planner ta
   await expect(page.locator(".stat-card").filter({ hasText: "Lost" }).locator("strong")).toHaveText("1");
   await page.screenshot({ path: "test-results/walkthrough/18-pipeline-outcomes.png", fullPage: true });
 
-  await page.goto("/automation");
-  await page.reload();
+  const uiRunsPromise = page.waitForResponse((response) =>
+    response.url().includes("/automation/runs") && response.request().method() === "GET",
+  );
+  await page.getByRole("link", { name: "Automation" }).click();
+  const uiRunsResponse = await uiRunsPromise;
+  expect(uiRunsResponse.status()).toBe(200);
+  const uiRuns = await uiRunsResponse.json();
+  expect(uiRuns.some((item: any) => item.workflow === "Won deal handoff")).toBe(true);
+  expect(uiRuns.some((item: any) => item.workflow === "Lost deal follow-up")).toBe(true);
   const runsResponse = await apiCall(page, "/organizations/" + org + "/automation/runs?limit=50", workspace.token);
   expect(runsResponse.status).toBe(200);
   const wonRun = runsResponse.body.find((item: any) => item.workflow === "Won deal handoff");
@@ -375,8 +389,18 @@ test("pipeline transitions trigger persisted won/lost automations and planner ta
     });
     expect(response.status).toBe(201);
   }
+  const seededOpportunities = await apiCall(page, "/organizations/" + org + "/opportunities?page=1&page_size=25", workspace.token);
+  expect(seededOpportunities.status).toBe(200);
+  expect(seededOpportunities.body.total).toBe(28);
+  expect(seededOpportunities.body.page_size).toBe(25);
   await page.goto("/opportunities");
-  await page.reload();
+  await page.getByRole("button", { name: "New opportunity" }).click();
+  await page.getByLabel("Name").fill("Pagination confirmation opportunity");
+  await page.getByLabel("Amount").fill("9500");
+  await page.getByRole("button", { name: "Create opportunity" }).click();
+  await expect(page.getByRole("table").getByText("Pagination confirmation opportunity", { exact: true })).toBeVisible();
+  const refreshedOpportunities = await apiCall(page, "/organizations/" + org + "/opportunities?page=1&page_size=25", workspace.token);
+  expect(refreshedOpportunities.body.total).toBe(29);
   await expect(page.getByText("Page 1 of 2")).toBeVisible();
   await page.screenshot({ path: "test-results/walkthrough/19-opportunity-pagination.png", fullPage: true });
   await page.getByRole("button", { name: "Next" }).click();

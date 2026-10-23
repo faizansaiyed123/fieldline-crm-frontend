@@ -64,6 +64,11 @@ export default function OpportunitiesPage() {
       void queryClient.invalidateQueries({ queryKey: ["opportunity-count", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["pipeline-stuck", organizationId] });
       void queryClient.invalidateQueries({ queryKey: ["quality", organizationId] });
+      if (opportunity.status === "won" || opportunity.status === "lost") {
+        void queryClient.invalidateQueries({ queryKey: ["automation-runs", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["planner", organizationId] });
+        void queryClient.invalidateQueries({ queryKey: ["attention", organizationId] });
+      }
       setSelected(opportunity);
     },
   });
