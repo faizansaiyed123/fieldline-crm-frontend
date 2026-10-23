@@ -11,6 +11,7 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByRole("button", { name: "Create workspace" }).click();
 
   await expect(page.getByRole("heading", { name: "Good morning. Here is the signal." })).toBeVisible();
+  await page.screenshot({ path: "test-results/walkthrough/01-dashboard.png", fullPage: true });
 
   await page.getByRole("link", { name: "Companies" }).click();
   await page.getByRole("button", { name: "Add company" }).click();
@@ -22,8 +23,9 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByText("Acme Systems", { exact: true }).click();
   await page.getByLabel("Company name").fill("Acme Systems Intl");
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByText("Acme Systems Intl")).toBeVisible();
+  await expect(page.getByRole("row", { name: /Acme Systems Intl/ })).toBeVisible();
   await page.getByLabel("Close").click();
+  await page.screenshot({ path: "test-results/walkthrough/02-companies.png", fullPage: true });
 
   await page.getByRole("link", { name: "Contacts" }).click();
   await page.getByRole("button", { name: "Add contact" }).click();
@@ -33,11 +35,13 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByLabel("Lifecycle").selectOption("prospect");
   await page.getByRole("button", { name: "Create contact" }).click();
   await expect(page.getByText("Ada Lovelace")).toBeVisible();
+  await page.screenshot({ path: "test-results/walkthrough/03-contacts.png", fullPage: true });
 
   await page.getByRole("button", { name: "Inspect Ada Lovelace relationship" }).click();
   await expect(page.getByRole("dialog", { name: "Ada Lovelace" })).toBeVisible();
   await expect(page.getByText("Deterministic relationship-health heuristic.")).toBeVisible();
   await expect(page.getByText("Recent context")).toBeVisible();
+  await page.screenshot({ path: "test-results/walkthrough/04-relationship-context.png", fullPage: true });
   await page.getByLabel("Close").click();
 
   await page.getByRole("link", { name: "Pipeline" }).click();
@@ -51,6 +55,7 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByRole("button", { name: "Save changes" }).click();
   await expect(page.getByLabel("Expected close")).toHaveValue("2026-10-15");
   await page.getByLabel("Close").click();
+  await page.screenshot({ path: "test-results/walkthrough/05-pipeline.png", fullPage: true });
 
   await page.getByRole("link", { name: "Saved views" }).click();
   await page.getByRole("button", { name: "Create view" }).click();
@@ -60,6 +65,7 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByRole("button", { name: "Save view" }).click();
   await expect(page.getByText("Prospects with email")).toBeVisible();
   await expect(page.getByText(/1 matching contacts/)).toBeVisible();
+  await page.screenshot({ path: "test-results/walkthrough/06-saved-views.png", fullPage: true });
 
   await page.getByRole("link", { name: "Imports" }).click();
   const csv = "first_name,last_name,email,lifecycle\nGrace,Hopper,grace-" + stamp + "@example.com,prospect\n";
@@ -73,10 +79,19 @@ test("full browser journey persists real CRM state across workspace screens", as
   await expect(page.getByText(/would be created/)).toBeVisible();
   await page.getByRole("button", { name: "Commit import" }).click();
   await expect(page.getByText(/Imported 1 contacts successfully/)).toBeVisible();
+  await page.screenshot({ path: "test-results/walkthrough/07-imports.png", fullPage: true });
 
-  for (const route of ["/planner", "/quality", "/relationships", "/automation", "/settings"]) {
+  const productPages = [
+    ["/planner", "08-planner.png"],
+    ["/quality", "09-data-quality.png"],
+    ["/relationships", "10-relationships.png"],
+    ["/automation", "11-automation.png"],
+    ["/settings", "12-settings.png"],
+  ] as const;
+  for (const [route, screenshot] of productPages) {
     await page.goto(route);
     await expect(page.locator("h1")).toBeVisible();
+    await page.screenshot({ path: `test-results/walkthrough/${screenshot}`, fullPage: true });
   }
 
   await page.getByRole("button", { name: "Sign out" }).click();
