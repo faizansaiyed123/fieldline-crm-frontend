@@ -88,3 +88,12 @@ jobs:
 
       - name: Run real browser E2E
         run: npx playwright test e2e/real-backend.spec.ts e2e/deep-product.spec.ts e2e/standout.spec.ts
+
+      - name: Preserve walkthrough screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fieldline-product-walkthrough
+          path: test-results/walkthrough/*.png
+          if-no-files-found: warn
+          retention-days: 14
