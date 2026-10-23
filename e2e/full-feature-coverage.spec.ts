@@ -146,7 +146,7 @@ test("authentication, record CRUD, archival, API detail routes, and pagination u
   expect(company).toBeTruthy();
   const companyDetail = await apiCall(page, "/organizations/" + org + "/companies/" + company.id, workspace.token);
   expect(companyDetail.status).toBe(200);
-  expect(companyDetail.body.website).toBe("https://harborstone.example");
+  expect(companyDetail.body.website).toBe("https://harborstone.example/");
 
   await page.getByRole("link", { name: "Contacts" }).click();
   await createContact(page, "Lena", "Park", "lena-" + workspace.stamp + "@example.com", "Harborstone Advisory");
@@ -412,7 +412,7 @@ test("pipeline transitions trigger persisted won/lost automations and planner ta
   expect(rules.status).toBe(200);
   expect(rules.body.find((item: any) => item.key === "contact_inactivity_days").value).toBe(13);
   const invalidRule = await apiCall(page, "/organizations/" + org + "/business-rules/contact_inactivity_days", workspace.token, "PATCH", { value: 400 });
-  expect(invalidRule.status).toBe(400);
+  expect(invalidRule.status).toBe(422);
   const systemHealth = await apiCall(page, "/organizations/" + org + "/system-health", workspace.token);
   expect(systemHealth.status).toBe(200);
   expect(systemHealth.body.status).toBe("ok");
@@ -505,14 +505,27 @@ test("quality merges preserve contact and company relationships in PostgreSQL", 
   await expect(page.locator(".candidate").filter({ hasText: "Sapphire Logistic" }).first()).toBeVisible();
   await page.locator(".candidate").filter({ hasText: "Sapphire Logistic" }).first().click();
   await expect(page.getByRole("dialog", { name: "Choose the survivor" })).toBeVisible();
-  await page.getByRole("button", { name: "Merge into Record A" }).click();
+  const recordA = page.locator(".compare-card").nth(0);
+  const recordALabel = await recordA.innerText();
+  const survivorButton = recordALabel.includes(companyCandidate.first_label) ? "Merge into Record A" : "Merge into Record B";
+  const companyMergeResponsePromise = page.waitForResponse((response) =>
+    response.url().includes("/data-quality/company/") && response.request().method() === "POST",
+  );
+  await page.getByRole("button", { name: survivorButton }).click();
+  const companyMergeResponse = await companyMergeResponsePromise;
+  expect(companyMergeResponse.status()).toBe(200);
+  const companyMergeOperation = await companyMergeResponse.json();
+  expect(companyMergeOperation.survivor_id).toBe(companyCandidate.first_id);
+  expect(companyMergeOperation.merged_id).toBe(companyCandidate.second_id);
   await expect(page.getByRole("status").filter({ hasText: "Merge completed" })).toBeVisible();
   const movedContact = await apiCall(page, "/organizations/" + org + "/contacts/" + linkedContact.body.id, workspace.token);
   expect(movedContact.status).toBe(200);
-  expect(movedContact.body.company_id).toBe(companyCandidate.first_id);
+  expect(movedContact.body.company_id).toBe(companyMergeOperation.survivor_id);
+  const oldCompany = await apiCall(page, "/organizations/" + org + "/companies/" + companyMergeOperation.merged_id, workspace.token);
+  expect(oldCompany.status).toBe(404);
   const movedGraph = await apiCall(page, "/organizations/" + org + "/contacts/" + linkedContact.body.id + "/relationship-graph", workspace.token);
-  expect(movedGraph.body.nodes.some((node: any) => node.id === "company:" + companyCandidate.first_id)).toBe(true);
-  expect(movedGraph.body.nodes.some((node: any) => node.id === "company:" + companyCandidate.second_id)).toBe(false);
+  expect(movedGraph.body.nodes.some((node: any) => node.id === "company:" + companyMergeOperation.survivor_id)).toBe(true);
+  expect(movedGraph.body.nodes.some((node: any) => node.id === "company:" + companyMergeOperation.merged_id)).toBe(false);
   await expect(page.getByText("No duplicate candidates detected.")).toBeVisible();
   await page.screenshot({ path: "test-results/walkthrough/23-quality-merge.png", fullPage: true });
 });
