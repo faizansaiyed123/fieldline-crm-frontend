@@ -63,7 +63,7 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByLabel("Contains").fill("Ada");
   await page.getByLabel("Only contacts with email").check();
   await page.getByRole("button", { name: "Save view" }).click();
-  await expect(page.getByText("Prospects with email")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Prospects with email" })).toBeVisible();
   await expect(page.getByText(/1 matching contacts/)).toBeVisible();
   await page.screenshot({ path: "test-results/walkthrough/06-saved-views.png", fullPage: true });
 
