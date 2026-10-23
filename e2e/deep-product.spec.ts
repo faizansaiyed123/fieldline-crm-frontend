@@ -266,7 +266,7 @@ test("client coalesces concurrent expired-session refreshes", async ({ page }) =
       body: JSON.stringify({ items: [], page: 1, page_size: 25, total: 0 }),
     });
   });
-  await page.route(`**${base}/attention`, async (route) => {
+  await page.route(`**${base}/attention**`, async (route) => {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -316,7 +316,7 @@ test("dashboard surfaces a retryable data failure instead of a false zero state"
   await page.route(`**${base}/opportunities**`, async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], page: 1, page_size: 1, total: 3 }) });
   });
-  await page.route(`**${base}/attention`, async (route) => {
+  await page.route(`**${base}/attention**`, async (route) => {
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ items: [], generated_at: new Date().toISOString() }) });
   });
 
