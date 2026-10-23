@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test";
 
-test("full browser journey persists real CRM state across workspace screens", async ({ page }) => {
+test("creates and reads back connected CRM records across workspace screens", async ({ page }) => {
   const stamp = Date.now();
   await page.goto("/signup");
 
   await page.getByLabel("Organization").fill("Northstar Field Services");
   await page.getByLabel("Your name").fill("Jordan Ellis");
-  await page.getByLabel("Email").fill(`deep-${stamp}@example.com`);
+  await page.getByLabel("Email").fill(`jordan-${stamp}@example.com`);
   await page.getByLabel("Password").fill("Correct Horse Battery Staple");
   await page.getByRole("button", { name: "Create workspace" }).click();
 
@@ -60,6 +60,8 @@ test("full browser journey persists real CRM state across workspace screens", as
   await page.getByRole("button", { name: "New opportunity" }).click();
   await page.getByLabel("Name").fill("Regional rollout");
   await page.getByLabel("Amount").fill("250000");
+  await page.getByLabel("Primary contact").selectOption({ label: "Maya Chen" });
+  await page.getByLabel("Company").selectOption({ label: "Acme Systems Intl" });
   await page.getByRole("button", { name: "Create opportunity" }).click();
   await expect(page.getByRole("table").getByText("Regional rollout", { exact: true })).toBeVisible();
   await page.getByRole("table").getByText("Regional rollout", { exact: true }).click();
