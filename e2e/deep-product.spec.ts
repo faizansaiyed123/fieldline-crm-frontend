@@ -59,7 +59,7 @@ test("full browser journey persists real CRM state across workspace screens", as
 
   await page.getByRole("link", { name: "Saved views" }).click();
   await page.getByRole("button", { name: "Create view" }).click();
-  await page.getByLabel("Name").fill("Prospects with email");
+  await page.getByRole("textbox", { name: "Name" }).fill("Prospects with email");
   await page.getByLabel("Contains").fill("Ada");
   await page.getByLabel("Only contacts with email").check();
   await page.getByRole("button", { name: "Save view" }).click();
