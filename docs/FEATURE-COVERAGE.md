@@ -70,6 +70,10 @@ The Backend CI workflow runs linting and compilation, applies migrations, execut
 
 The added `tests/test_payload_boundaries.py` integration suite exercises selected schema and query boundaries using PostgreSQL-backed requests: accepted minimum/maximum company and contact lengths; rejection of blank or overlong names, malformed website/email inputs, unsupported lifecycle values and oversized optional fields; and rejection of invalid page/page-size/search query parameters. It also verifies that invalid company/contact create requests do not leave records behind.
 
+The expanded security/configuration checks in `tests/test_auth_security.py` cover wrong token type, mismatched JWT issuer or audience, expired access-token claims, malformed subject UUIDs and missing required claims. `tests/test_config.py` checks the supported minimum and maximum access/refresh token lifetimes and rejects values outside those limits, alongside the existing production secret and secure-cookie checks.
+
+The latest backend CI run for commit [`4fb1b9f`](https://github.com/faizansaiyed123/fieldline-crm-backend/commit/4fb1b9f01d6d64f297a3b31b8270edb2cdd5f9c6) passed lint, compilation, migrations, tests and the Docker build. Its coverage report showed **86% overall statement/branch coverage** for the `app` package (2,856 statements and 484 branches measured). The [Backend CI run](https://github.com/faizansaiyed123/fieldline-crm-backend/actions/runs/39893477776) has the downloadable HTML report in its Artifacts section.
+
 Coverage output is currently diagnostic: there is no arbitrary minimum percentage enforced yet. This makes uncovered statements and branches visible for prioritizing the next set of tests, while avoiding a made-up threshold before the baseline has been reviewed. A coverage percentage by itself is not proof that assertions are meaningful or that every input combination has been tested.
 
 The CI pass confirms the repository tests passed for the recorded backend commit. It does not mean production customer data or a deployed production database was exercised.
