@@ -13,9 +13,15 @@ __pycache__/
 node_modules/
 .next/
 out/
+dist/
+build/
 coverage/
+coverage-html/
 playwright-report/
 test-results/
+*.tsbuildinfo
+logs/
+storage/uploads/
 
 .DS_Store
 Thumbs.db
