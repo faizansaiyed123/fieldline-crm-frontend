@@ -1,12 +1,16 @@
 import { expect, test } from "@playwright/test";
 
-test("workspace setup and contact creation work end to end", async ({ page }) => {
+test("workspace setup and contact creation work end to end", async ({
+  page,
+}) => {
   const stamp = Date.now();
   const organization = `Cedarfield Consulting ${stamp}`;
   const email = `e2e-${stamp}@example.com`;
 
   await page.goto("/signup");
-  await expect(page.getByRole("heading", { name: "Start with clean customer context." })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Start with clean customer context." }),
+  ).toBeVisible();
 
   await page.getByLabel("Organization").fill(organization);
   await page.getByLabel("Your name").fill("Morgan Reed");
@@ -18,10 +22,18 @@ test("workspace setup and contact creation work end to end", async ({ page }) =>
     page.getByRole("heading", { name: "Good morning. Here is the signal." }),
   ).toBeVisible();
 
-  const contactsCard = page.locator(".stat-card").filter({ hasText: "Contacts" });
-  const companiesCard = page.locator(".stat-card").filter({ hasText: "Companies" });
-  const pipelineCard = page.locator(".stat-card").filter({ hasText: "Pipeline" });
-  const attentionCard = page.locator(".stat-card").filter({ hasText: "Attention" });
+  const contactsCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Contacts" });
+  const companiesCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Companies" });
+  const pipelineCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Pipeline" });
+  const attentionCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Attention" });
 
   await expect(contactsCard.locator("strong")).toHaveText("0");
   await expect(companiesCard.locator("strong")).toHaveText("0");
@@ -29,7 +41,9 @@ test("workspace setup and contact creation work end to end", async ({ page }) =>
   await expect(attentionCard.locator("strong")).toHaveText("0");
 
   await page.getByRole("link", { name: "Contacts" }).click();
-  await expect(page.getByRole("heading", { name: "Contacts", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Contacts", exact: true }),
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Add contact" }).click();
   await page.getByLabel("First name").fill("Noor");

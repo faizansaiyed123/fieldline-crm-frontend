@@ -49,11 +49,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="shell">
-      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <aside className="sidebar">
         <Link href="/dashboard" className="brand">
           <span className="brand-mark">F</span>
-          <span><strong>Fieldline</strong><small>customer workspace</small></span>
+          <span>
+            <strong>Fieldline</strong>
+            <small>customer workspace</small>
+          </span>
         </Link>
         <div className="workspace-card">
           <span className="workspace-kicker">WORKSPACE</span>
@@ -65,21 +70,30 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Link
               key={item.href}
               href={item.href}
-              className={pathname === item.href ? "nav-link active" : "nav-link"}
+              className={
+                pathname === item.href ? "nav-link active" : "nav-link"
+              }
               aria-current={pathname === item.href ? "page" : undefined}
             >
-              <span className="nav-glyph" aria-hidden="true">{item.glyph}</span>
+              <span className="nav-glyph" aria-hidden="true">
+                {item.glyph}
+              </span>
               {item.label}
             </Link>
           ))}
         </nav>
         <div className="sidebar-footer">
-          <Button variant="ghost" onClick={() => void signOut().then(() => router.replace("/login"))}>
+          <Button
+            variant="ghost"
+            onClick={() => void signOut().then(() => router.replace("/login"))}
+          >
             Sign out
           </Button>
         </div>
       </aside>
-      <main id="main-content" className="main">{children}</main>
+      <main id="main-content" className="main">
+        {children}
+      </main>
     </div>
   );
 }

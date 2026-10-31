@@ -267,9 +267,11 @@ export type RelationshipGraphResponse = {
 export type SystemHealthResponse = {
   generated_at: string;
   status: "ok" | "warning" | "error";
-  checks: Record<string, { status: "ok" | "warning" | "error"; detail: string }>;
+  checks: Record<
+    string,
+    { status: "ok" | "warning" | "error"; detail: string }
+  >;
 };
-
 
 export type TimelineItem = {
   id: string;
@@ -297,7 +299,6 @@ export type PipelineStage = {
   is_won: boolean;
 };
 
-
 export type AutomationRule = {
   id: string;
   organization_id: string;
@@ -313,7 +314,6 @@ export type AutomationRule = {
   created_at: string;
   updated_at: string;
 };
-
 
 export type ActivityItem = {
   id: string;

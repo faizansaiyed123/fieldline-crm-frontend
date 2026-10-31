@@ -2,7 +2,12 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { ApiError, apiFetch, refreshSession, registerAccessTokenListener } from "@/lib/api";
+import {
+  ApiError,
+  apiFetch,
+  refreshSession,
+  registerAccessTokenListener,
+} from "@/lib/api";
 import type { AuthResponse, User } from "@/lib/types";
 
 const queryClient = new QueryClient({
@@ -11,7 +16,12 @@ const queryClient = new QueryClient({
       staleTime: 15_000,
       gcTime: 5 * 60_000,
       retry: (failureCount, error) => {
-        if (error instanceof ApiError && error.status >= 400 && error.status < 500) return false;
+        if (
+          error instanceof ApiError &&
+          error.status >= 400 &&
+          error.status < 500
+        )
+          return false;
         return failureCount < 1;
       },
       refetchOnWindowFocus: true,

@@ -32,7 +32,10 @@ export default function LoginPage() {
       <div className="auth-card">
         <Link href="/" className="brand">
           <span className="brand-mark">F</span>
-          <span><strong>Fieldline</strong><small>customer workspace</small></span>
+          <span>
+            <strong>Fieldline</strong>
+            <small>customer workspace</small>
+          </span>
         </Link>
         <div className="auth-intro">
           <span className="eyebrow">Welcome back</span>
@@ -40,12 +43,38 @@ export default function LoginPage() {
           <p>Resume the customer work that needs your attention.</p>
         </div>
         <form onSubmit={submit} className="stack-form">
-          <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" /></label>
-          <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" /></label>
-          {error ? <div className="form-error" role="alert">{error}</div> : null}
-          <button className="button button-primary" disabled={busy}>{busy ? "Signing in…" : "Sign in"}</button>
+          <label>
+            Email
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+            />
+          </label>
+          <label>
+            Password
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </label>
+          {error ? (
+            <div className="form-error" role="alert">
+              {error}
+            </div>
+          ) : null}
+          <button className="button button-primary" disabled={busy}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
         </form>
-        <p className="auth-footer">New to Fieldline? <Link href="/signup">Create a workspace</Link></p>
+        <p className="auth-footer">
+          New to Fieldline? <Link href="/signup">Create a workspace</Link>
+        </p>
       </div>
     </main>
   );

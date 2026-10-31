@@ -7,7 +7,9 @@ export default function WorkspaceLoading() {
         <div className="skeleton-copy" />
       </div>
       <div className="stats-grid">
-        {Array.from({ length: 4 }, (_, index) => <div key={index} className="skeleton-card" />)}
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="skeleton-card" />
+        ))}
       </div>
       <div className="content-grid two-up">
         <div className="panel skeleton-panel" />

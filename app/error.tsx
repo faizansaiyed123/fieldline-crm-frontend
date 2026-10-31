@@ -19,10 +19,17 @@ export default function GlobalError({
       <section className="auth-card">
         <span className="eyebrow">Something went wrong</span>
         <h1>Fieldline could not finish that view.</h1>
-        <p className="auth-intro-copy">The workspace is still safe. You can retry the page or return to the overview.</p>
+        <p className="auth-intro-copy">
+          The workspace is still safe. You can retry the page or return to the
+          overview.
+        </p>
         <div className="hero-actions">
-          <button className="button button-primary" onClick={() => reset()}>Try again</button>
-          <Link className="button button-secondary" href="/dashboard">Back to workspace</Link>
+          <button className="button button-primary" onClick={() => reset()}>
+            Try again
+          </button>
+          <Link className="button button-secondary" href="/dashboard">
+            Back to workspace
+          </Link>
         </div>
       </section>
     </main>
