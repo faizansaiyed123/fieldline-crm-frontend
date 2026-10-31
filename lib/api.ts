@@ -61,8 +61,7 @@ async function request<T>(
     try {
       const payload = (await response.json()) as { detail?: string };
       message = payload.detail ?? message;
-    } catch {
-    }
+    } catch {}
     throw new ApiError(response.status, message);
   }
 
@@ -72,7 +71,11 @@ async function request<T>(
 
 function refreshAccessToken() {
   if (!refreshInFlight) {
-    refreshInFlight = request<AuthResponse>("/auth/refresh", { method: "POST" }, null)
+    refreshInFlight = request<AuthResponse>(
+      "/auth/refresh",
+      { method: "POST" },
+      null,
+    )
       .then((session) => {
         accessTokenListener?.(session.access_token);
         return session;

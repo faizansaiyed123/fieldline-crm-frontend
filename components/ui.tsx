@@ -20,10 +20,19 @@ export function Button({
 }) {
   const className = `button button-${variant}`;
   if (href) {
-    return <Link href={href} className={className}>{children}</Link>;
+    return (
+      <Link href={href} className={className}>
+        {children}
+      </Link>
+    );
   }
   return (
-    <button type={type} className={className} onClick={onClick} disabled={disabled}>
+    <button
+      type={type}
+      className={className}
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   );
@@ -39,10 +48,18 @@ export function Badge({
   return <span className={`badge badge-${tone}`}>{children}</span>;
 }
 
-export function EmptyState({ title, description }: { title: string; description: string }) {
+export function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <div className="empty-state">
-      <div className="empty-icon" aria-hidden="true">+</div>
+      <div className="empty-icon" aria-hidden="true">
+        +
+      </div>
       <h3>{title}</h3>
       <p>{description}</p>
     </div>
@@ -92,7 +109,6 @@ export function StatCard({
   );
 }
 
-
 export function ErrorState({
   title = "Could not load this view",
   description,
@@ -104,11 +120,17 @@ export function ErrorState({
 }) {
   return (
     <div className="error-state" role="alert">
-      <div className="error-mark" aria-hidden="true">!</div>
+      <div className="error-mark" aria-hidden="true">
+        !
+      </div>
       <div>
         <strong>{title}</strong>
         <p>{description}</p>
-        {onRetry ? <Button variant="secondary" onClick={onRetry}>Try again</Button> : null}
+        {onRetry ? (
+          <Button variant="secondary" onClick={onRetry}>
+            Try again
+          </Button>
+        ) : null}
       </div>
     </div>
   );

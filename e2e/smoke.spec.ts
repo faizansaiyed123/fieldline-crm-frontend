@@ -13,7 +13,9 @@ const user = {
   ],
 };
 
-test("renders the authenticated dashboard from live-shaped API data", async ({ page }) => {
+test("renders the authenticated dashboard from live-shaped API data", async ({
+  page,
+}) => {
   const organizationId = user.memberships[0].organization_id;
 
   await page.route("**/api/v1/auth/refresh", async (route) => {
@@ -105,8 +107,12 @@ test("renders the authenticated dashboard from live-shaped API data", async ({ p
   await expect(
     page.getByRole("heading", { name: "Good morning. Here is the signal." }),
   ).toBeVisible();
-  const contactsCard = page.locator(".stat-card").filter({ hasText: "Contacts" });
-  const companiesCard = page.locator(".stat-card").filter({ hasText: "Companies" });
+  const contactsCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Contacts" });
+  const companiesCard = page
+    .locator(".stat-card")
+    .filter({ hasText: "Companies" });
   await expect(contactsCard.locator("strong")).toHaveText("3");
   await expect(companiesCard.locator("strong")).toHaveText("2");
   await expect(page.getByText("Follow up with Acme")).toBeVisible();

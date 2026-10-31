@@ -3,7 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
-import type { AttentionResponse, CompanyList, ContactList, OpportunityList } from "@/lib/types";
+import type {
+  AttentionResponse,
+  CompanyList,
+  ContactList,
+  OpportunityList,
+} from "@/lib/types";
 import { Badge, ErrorState, SectionTitle, StatCard } from "@/components/ui";
 
 export default function DashboardPage() {
@@ -14,25 +19,41 @@ export default function DashboardPage() {
   const contacts = useQuery({
     queryKey: ["contacts", "dashboard", organizationId],
     enabled,
-    queryFn: () => apiFetch<ContactList>(`${prefix}/contacts?page_size=1`, {}, accessToken),
+    queryFn: () =>
+      apiFetch<ContactList>(`${prefix}/contacts?page_size=1`, {}, accessToken),
   });
   const companies = useQuery({
     queryKey: ["companies", "dashboard", organizationId],
     enabled,
-    queryFn: () => apiFetch<CompanyList>(`${prefix}/companies?page_size=1`, {}, accessToken),
+    queryFn: () =>
+      apiFetch<CompanyList>(`${prefix}/companies?page_size=1`, {}, accessToken),
   });
   const opportunities = useQuery({
     queryKey: ["opportunities", "dashboard", organizationId],
     enabled,
-    queryFn: () => apiFetch<OpportunityList>(`${prefix}/opportunities?page_size=1`, {}, accessToken),
+    queryFn: () =>
+      apiFetch<OpportunityList>(
+        `${prefix}/opportunities?page_size=1`,
+        {},
+        accessToken,
+      ),
   });
   const attention = useQuery({
     queryKey: ["attention", organizationId],
     enabled,
-    queryFn: () => apiFetch<AttentionResponse>(`${prefix}/attention?limit=6`, {}, accessToken),
+    queryFn: () =>
+      apiFetch<AttentionResponse>(
+        `${prefix}/attention?limit=6`,
+        {},
+        accessToken,
+      ),
   });
 
-  const loading = contacts.isLoading || companies.isLoading || opportunities.isLoading || attention.isLoading;
+  const loading =
+    contacts.isLoading ||
+    companies.isLoading ||
+    opportunities.isLoading ||
+    attention.isLoading;
 
   return (
     <div className="page">
@@ -40,46 +61,132 @@ export default function DashboardPage() {
         eyebrow="Overview"
         title="Good morning. Here is the signal."
         description="A focused view of the customer work that deserves your attention today."
-        action={<div className="live-chip"><span />Live API</div>}
+        action={
+          <div className="live-chip">
+            <span />
+            Live API
+          </div>
+        }
       />
 
-      {(contacts.isError || companies.isError || opportunities.isError || attention.isError) ? (
-        <ErrorState description="The workspace data could not be refreshed. Retry to request the current server state again." onRetry={() => { void contacts.refetch(); void companies.refetch(); void opportunities.refetch(); void attention.refetch(); }} />
+      {contacts.isError ||
+      companies.isError ||
+      opportunities.isError ||
+      attention.isError ? (
+        <ErrorState
+          description="The workspace data could not be refreshed. Retry to request the current server state again."
+          onRetry={() => {
+            void contacts.refetch();
+            void companies.refetch();
+            void opportunities.refetch();
+            void attention.refetch();
+          }}
+        />
       ) : null}
       <div className="stats-grid">
-        <StatCard label="Contacts" value={loading || contacts.isError ? "—" : contacts.data?.total ?? 0} detail="people in the workspace" accent="blue" />
-        <StatCard label="Companies" value={loading || companies.isError ? "—" : companies.data?.total ?? 0} detail="active organizations" />
-        <StatCard label="Pipeline" value={loading || opportunities.isError ? "—" : opportunities.data?.total ?? 0} detail="tracked opportunities" accent="green" />
-        <StatCard label="Attention" value={loading || attention.isError ? "—" : attention.data?.items.length ?? 0} detail="evidence-backed items" accent="amber" />
+        <StatCard
+          label="Contacts"
+          value={
+            loading || contacts.isError ? "—" : (contacts.data?.total ?? 0)
+          }
+          detail="people in the workspace"
+          accent="blue"
+        />
+        <StatCard
+          label="Companies"
+          value={
+            loading || companies.isError ? "—" : (companies.data?.total ?? 0)
+          }
+          detail="active organizations"
+        />
+        <StatCard
+          label="Pipeline"
+          value={
+            loading || opportunities.isError
+              ? "—"
+              : (opportunities.data?.total ?? 0)
+          }
+          detail="tracked opportunities"
+          accent="green"
+        />
+        <StatCard
+          label="Attention"
+          value={
+            loading || attention.isError
+              ? "—"
+              : (attention.data?.items.length ?? 0)
+          }
+          detail="evidence-backed items"
+          accent="amber"
+        />
       </div>
 
       <div className="content-grid two-up">
         <section className="panel">
           <div className="panel-head">
-            <div><span className="eyebrow">Attention queue</span><h2>Act before context goes cold.</h2></div>
+            <div>
+              <span className="eyebrow">Attention queue</span>
+              <h2>Act before context goes cold.</h2>
+            </div>
             <Badge tone="warning">Evidence based</Badge>
           </div>
           {attention.data?.items.length ? (
             <div className="attention-list">
               {attention.data.items.map((item) => (
-                <div key={`${item.entity_type}-${item.entity_id}`} className="attention-item">
+                <div
+                  key={`${item.entity_type}-${item.entity_id}`}
+                  className="attention-item"
+                >
                   <div className="attention-score">{item.priority}</div>
-                  <div className="attention-copy"><strong>{item.title}</strong><p>{item.reason}</p></div>
+                  <div className="attention-copy">
+                    <strong>{item.title}</strong>
+                    <p>{item.reason}</p>
+                  </div>
                   <span className="attention-kind">{item.entity_type}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="panel-empty">Nothing needs immediate attention.</div>
+            <div className="panel-empty">
+              Nothing needs immediate attention.
+            </div>
           )}
         </section>
 
         <section className="panel">
-          <div className="panel-head"><div><span className="eyebrow">Workspace</span><h2>Designed around trustworthy state.</h2></div></div>
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">Workspace</span>
+              <h2>Designed around trustworthy state.</h2>
+            </div>
+          </div>
           <div className="principle-list">
-            <div><span>01</span><div><strong>Tenant scoped</strong><p>Every workspace query is bound to organization membership.</p></div></div>
-            <div><span>02</span><div><strong>Auditable</strong><p>Meaningful CRM changes and imports produce audit events.</p></div></div>
-            <div><span>03</span><div><strong>Explainable</strong><p>Attention and relationship health expose evidence, not opaque guesses.</p></div></div>
+            <div>
+              <span>01</span>
+              <div>
+                <strong>Tenant scoped</strong>
+                <p>
+                  Every workspace query is bound to organization membership.
+                </p>
+              </div>
+            </div>
+            <div>
+              <span>02</span>
+              <div>
+                <strong>Auditable</strong>
+                <p>Meaningful CRM changes and imports produce audit events.</p>
+              </div>
+            </div>
+            <div>
+              <span>03</span>
+              <div>
+                <strong>Explainable</strong>
+                <p>
+                  Attention and relationship health expose evidence, not opaque
+                  guesses.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </div>
