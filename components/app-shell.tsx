@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/app/providers";
 import { Button } from "@/components/ui";
+import { isBrowserDemoMode, resetBrowserDemoData } from "@/lib/demo-api";
 
 const nav = [
   { href: "/dashboard", label: "Overview", glyph: "O" },
@@ -24,6 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
+  const demoMode = isBrowserDemoMode();
 
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
@@ -92,6 +94,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <main id="main-content" className="main">
+        {demoMode ? (
+          <div className="demo-banner" role="status">
+            <div>
+              <strong>Interactive demo</strong>
+              <span>Changes stay in this browser. No production records or external services are connected.</span>
+            </div>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                resetBrowserDemoData();
+                window.location.reload();
+              }}
+            >
+              Reset demo data
+            </Button>
+          </div>
+        ) : null}
         {children}
       </main>
     </div>

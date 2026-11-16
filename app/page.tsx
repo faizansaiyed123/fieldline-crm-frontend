@@ -50,7 +50,7 @@ export default function HomePage() {
                   : "Start building your workspace"}
             </Button>
             <Link href="/login" className="text-link">
-              Already have an account →
+              Explore the interactive demo →
             </Link>
           </div>
         </div>

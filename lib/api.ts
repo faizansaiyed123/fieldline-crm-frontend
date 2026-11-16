@@ -1,4 +1,5 @@
 import type { AuthResponse } from "@/lib/types";
+import { demoApiRequest, isBrowserDemoMode } from "@/lib/demo-api";
 
 type ApiOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
@@ -33,6 +34,9 @@ async function request<T>(
   accessToken: string | null,
 ): Promise<T> {
   const { body, skipRefresh: _skipRefresh, ...requestOptions } = options;
+  if (isBrowserDemoMode()) {
+    return demoApiRequest<T>(path, { method: requestOptions.method, body });
+  }
   const headers = new Headers(requestOptions.headers);
   headers.set("Accept", "application/json");
 

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/app/providers";
 import { apiFetch } from "@/lib/api";
+import { isBrowserDemoMode } from "@/lib/demo-api";
 import type {
   AttentionResponse,
   CompanyList,
@@ -64,7 +65,7 @@ export default function DashboardPage() {
         action={
           <div className="live-chip">
             <span />
-            Live API
+            {isBrowserDemoMode() ? "Browser demo" : "Live API"}
           </div>
         }
       />

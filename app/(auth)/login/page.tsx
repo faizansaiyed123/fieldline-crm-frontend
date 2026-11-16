@@ -72,6 +72,14 @@ export default function LoginPage() {
             {busy ? "Signing in…" : "Sign in"}
           </button>
         </form>
+        <div className="demo-login">
+          <strong>Try the interactive demo</strong>
+          <span>Both sample accounts use password <code>Demo1234!</code>.</span>
+          <div>
+            <button type="button" className="button button-secondary" onClick={() => { setEmail("alex@fieldline.demo"); setPassword("Demo1234!"); }}>Use owner account</button>
+            <button type="button" className="button button-secondary" onClick={() => { setEmail("jordan@fieldline.demo"); setPassword("Demo1234!"); }}>Use member account</button>
+          </div>
+        </div>
         <p className="auth-footer">
           New to Fieldline? <Link href="/signup">Create a workspace</Link>
         </p>

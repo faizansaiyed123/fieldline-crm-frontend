@@ -1,0 +1,49 @@
+name: Fieldline Frontend Demo Checks
+
+on:
+  push:
+    branches: [demo]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fieldline-frontend-demo
+  cancel-in-progress: true
+
+jobs:
+  browser-demo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout demo branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build browser demo
+        env:
+          NEXT_PUBLIC_FIELDLINE_DEMO: "true"
+          BACKEND_URL: http://127.0.0.1:8001
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify browser demo flows
+        env:
+          NEXT_PUBLIC_FIELDLINE_DEMO: "true"
+        run: npx playwright test e2e/demo.spec.ts
+
+      - name: Build frontend container
+        run: docker build --pull --build-arg BACKEND_URL=http://127.0.0.1:8001 --tag fieldline-crm-frontend:demo .
