@@ -66,17 +66,19 @@
 }
 
 .hero {
+
   width: min(1240px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 94px 0 112px;
+  padding: 122px 0 142px;
   display: grid;
-  grid-template-columns: minmax(0, 0.88fr) minmax(520px, 1.12fr);
-  gap: 72px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: center;
 }
 
 .hero-copy {
-  max-width: 650px;
+
+  max-width: 920px;
 }
 
 .eyebrow {
@@ -89,11 +91,12 @@
 }
 
 .hero h1 {
-  max-width: 680px;
-  margin: 16px 0 22px;
-  font-size: clamp(46px, 5.5vw, 76px);
+
+  max-width: 940px;
+  margin: 18px 0 24px;
+  font-size: clamp(48px, 6.4vw, 84px);
   line-height: 0.99;
-  letter-spacing: -0.058em;
+  letter-spacing: -0.06em;
   text-wrap: balance;
 }
 
@@ -145,193 +148,9 @@
   flex: 0 0 auto;
 }
 
-.hero-product {
-  min-width: 0;
-}
-
-.product-window {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: #0b1511;
-  box-shadow: var(--shadow);
-  animation: product-arrive 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-.product-chrome {
-  min-height: 56px;
-  padding: 0 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  border-bottom: 1px solid var(--line);
-}
-
-.product-brand {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 12px;
-  font-weight: 750;
-}
-
 .product-brand img {
   width: 23px;
   height: 23px;
-}
-
-.product-location {
-  color: #687a71;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.product-layout {
-  display: grid;
-  grid-template-columns: 176px minmax(0, 1fr);
-  min-height: 398px;
-}
-
-.product-nav {
-  padding: 22px 12px;
-  border-right: 1px solid var(--line);
-}
-
-.product-nav-label {
-  display: block;
-  margin: 0 10px 11px;
-  color: #60736a;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.product-nav-item {
-  display: block;
-  padding: 9px 10px;
-  color: #81938b;
-  border-left: 2px solid transparent;
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-.product-nav-item + .product-nav-item {
-  margin-top: 2px;
-}
-
-.product-nav-item.active {
-  border-left-color: var(--accent);
-  color: #e2eee8;
-  background: rgba(115, 224, 172, 0.055);
-}
-
-.product-main {
-  min-width: 0;
-  padding: 28px;
-}
-
-.product-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid #1a2922;
-}
-
-.product-kicker {
-  display: block;
-  color: #687b72;
-  font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.product-heading h2 {
-  margin: 7px 0 0;
-  font-size: clamp(18px, 2.1vw, 25px);
-  letter-spacing: -0.035em;
-}
-
-.product-status {
-  flex: 0 0 auto;
-  color: #8eaaa0;
-  font-size: 10px;
-  white-space: nowrap;
-}
-
-.product-status i {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-right: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  vertical-align: middle;
-  box-shadow: 0 0 0 3px rgba(115, 224, 172, 0.08);
-}
-
-.product-flow {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 46px 0 40px;
-}
-
-.flow-step {
-  min-width: 0;
-}
-
-.flow-number {
-  display: block;
-  margin-bottom: 12px;
-  color: var(--accent);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-}
-
-.flow-step strong {
-  display: block;
-  font-size: 12px;
-  line-height: 1.4;
-}
-
-.flow-step div > span {
-  display: block;
-  margin-top: 6px;
-  color: #72857b;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.flow-line {
-  width: 28px;
-  height: 1px;
-  background: #3b5147;
-}
-
-.product-footer-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  border-top: 1px solid #1a2922;
-  color: #6f8179;
-  font-size: 9px;
-}
-
-.product-footer-line span {
-  padding: 14px 15px 0 0;
-}
-
-.product-footer-line span + span {
-  margin-left: 15px;
-  padding-left: 15px;
-  border-left: 1px solid #31433a;
 }
 
 .understand-section,
@@ -489,17 +308,6 @@
   height: 20px;
 }
 
-@keyframes product-arrive {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @media (max-width: 1100px) {
   .hero {
     grid-template-columns: 1fr;
@@ -508,10 +316,6 @@
 
   .hero-copy {
     max-width: 820px;
-  }
-
-  .hero-product {
-    max-width: 900px;
   }
 
   .suite-section {
@@ -548,74 +352,6 @@
 
   .hero-actions {
     flex-wrap: wrap;
-  }
-
-  .product-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .product-nav {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    overflow-x: auto;
-    padding: 10px 12px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .product-nav-label {
-    display: none;
-  }
-
-  .product-nav-item {
-    flex: 0 0 auto;
-    padding: 8px 9px;
-    border-left: 0;
-    border-bottom: 2px solid transparent;
-  }
-
-  .product-nav-item.active {
-    border-left: 0;
-    border-bottom-color: var(--accent);
-  }
-
-  .product-main {
-    padding: 22px;
-  }
-
-  .product-flow {
-    grid-template-columns: 1fr;
-    gap: 0;
-    padding: 30px 0;
-  }
-
-  .flow-step {
-    display: grid;
-    grid-template-columns: 30px 1fr;
-    gap: 12px;
-    padding: 13px 0;
-  }
-
-  .flow-number {
-    margin: 0;
-  }
-
-  .flow-line {
-    display: none;
-  }
-
-  .product-footer-line {
-    gap: 0;
-  }
-
-  .product-footer-line span {
-    padding-top: 12px;
-  }
-
-  .product-footer-line span + span {
-    margin-left: 12px;
-    padding-left: 12px;
   }
 
   .product-areas {
@@ -690,27 +426,6 @@
     text-align: center;
   }
 
-  .product-chrome {
-    padding-inline: 13px;
-  }
-
-  .product-location {
-    display: none;
-  }
-
-  .product-main {
-    padding: 18px;
-  }
-
-  .product-heading {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .product-heading h2 {
-    font-size: 20px;
-  }
-
   .understand-section,
   .suite-section,
   .landing-footer {
@@ -732,9 +447,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .product-window {
-    animation: none;
-  }
 
   .button,
   .text-link,
