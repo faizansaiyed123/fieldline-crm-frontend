@@ -87,8 +87,6 @@ export default function HomePage() {
             <span>One place for the record, the relationship, and the next action.</span>
           </div>
         </div>
-
-
       </section>
 
       <section className="understand-section">
