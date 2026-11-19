@@ -24,10 +24,7 @@
   height: 34px;
   display: block;
   flex: 0 0 auto;
-}
-
-.brand-logo img,
-.product-brand img,
+}.brand-logo img,
 .footer-brand img {
   width: 100%;
   height: 100%;
@@ -146,11 +143,6 @@
   height: 1px;
   background: #496258;
   flex: 0 0 auto;
-}
-
-.product-brand img {
-  width: 23px;
-  height: 23px;
 }
 
 .understand-section,
