@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useAuth } from "@/app/providers";
 import { Button } from "@/components/ui";
+import "./home.css";
 
 const productAreas = [
   {
